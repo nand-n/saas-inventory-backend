@@ -1,0 +1,116 @@
+// inventory-item.service.ts
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { InventoryItem } from './entities/inventory-item.entity';
+import { CreateInventoryItemDto, UpdateInventoryItemDto } from './dtos/inventory-item.dto';
+
+@Injectable()
+export class InventoryItemService {
+  constructor(
+    @InjectRepository(InventoryItem)
+    private readonly itemRepository: Repository<InventoryItem>,
+  ) {}
+
+  async create(createDto: CreateInventoryItemDto): Promise<InventoryItem> {
+    const item = this.itemRepository.create(createDto);
+    return await this.itemRepository.save(item);
+  }
+
+  async update(id: string, updateDto: UpdateInventoryItemDto): Promise<InventoryItem> {
+    const item = await this.itemRepository.preload({ id, ...updateDto });
+    if (!item) {
+      throw new NotFoundException(`Item with ID ${id} not found`);
+    }
+    return await this.itemRepository.save(item);
+  }
+
+  async findAll(): Promise<InventoryItem[]> {
+    return await this.itemRepository.find();
+  }
+
+
+  async findOne(id: string): Promise<InventoryItem> {
+    const item = await this.itemRepository.findOne({ where: { id } });
+    if (!item) {
+      throw new NotFoundException(`Item with ID ${id} not found`);
+    }
+    return item;
+  }
+
+  async delete(id: string): Promise<void> {
+    const result = await this.itemRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Item with ID ${id} not found`);
+    }
+  }
+  async groupByBranch(): Promise<
+  {
+    branch_id: string;
+    branch_name: string;
+    items: InventoryItem[];
+  }[]
+> {
+  const rawItems = await this.itemRepository
+    .createQueryBuilder('item')
+    .leftJoinAndSelect('item.branch', 'branch')
+    .orderBy('branch.id', 'ASC')
+    .addOrderBy('item.item_name', 'ASC')
+    .getMany();
+
+  const groupedMap = new Map<string, { branch_id: string; branch_name: string; items: InventoryItem[] }>();
+
+  for (const item of rawItems) {
+    const branchId = item.branch?.id;
+    if (!branchId) continue;
+
+    if (!groupedMap.has(branchId)) {
+      groupedMap.set(branchId, {
+        branch_id: branchId,
+        branch_name: item.branch.name,
+        items: [],
+      });
+    }
+
+    groupedMap.get(branchId)!.items.push(item);
+  }
+
+  return Array.from(groupedMap.values());
+}
+async summarizeGroupedByBranch() {
+  return await this.itemRepository
+    .createQueryBuilder('item')
+    .leftJoin('item.branch', 'branch')
+    .select('branch.id', 'branch_id')
+    .addSelect('branch.name', 'branch_name')
+    .addSelect('COUNT(item.id)', 'total_items')
+    .addSelect('SUM(item.quantity)', 'total_quantity')
+    .addSelect('SUM(item.unit_price * item.quantity)', 'total_value')
+    .groupBy('branch.id')
+    .addGroupBy('branch.name')
+    .getRawMany();
+}
+
+  async findByBranchId(branchId: string): Promise<InventoryItem[]> {
+    return await this.itemRepository.find({ where: { branch_id: branchId } });
+  }
+  async findByCategoryId(categoryId: string): Promise<InventoryItem[]> {
+    return await this.itemRepository.find({ where: { category_id: categoryId } });
+  }
+  async findBySku(sku: string): Promise<InventoryItem[]> {
+    return await this.itemRepository.find({ where: { sku } });
+  }
+  async findBySkuAndBranchId(sku: string, branchId: string): Promise<InventoryItem[]> {
+    return await this.itemRepository.find({ where: { sku, branch_id: branchId } });
+  }
+  async findByCategoryIdAndBranchId(categoryId: string, branchId: string): Promise<InventoryItem[]> {
+    return await this.itemRepository.find({ where: { category_id: categoryId, branch_id: branchId } });
+  }
+  async findByCategoryIdAndSku(categoryId: string, sku: string): Promise<InventoryItem[]> {
+    return await this.itemRepository.find({ where: { category_id: categoryId, sku } });
+  }
+  async findByCategoryIdAndSkuAndBranchId(categoryId: string, sku: string, branchId: string): Promise<InventoryItem[]> {
+    return await this.itemRepository.find({ where: { category_id: categoryId, sku, branch_id: branchId } });
+  }
+  
+}

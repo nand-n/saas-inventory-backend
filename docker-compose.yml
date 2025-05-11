@@ -1,0 +1,36 @@
+version: '3'
+services:
+  mamesododb:
+    image: postgres
+    container_name: mamesododb
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: sampledb
+    ports:
+      - '5434:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  mamesodopgadmintweb:
+    image: dpage/pgadmin4
+    container_name: mamesodopgadmintweb
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - '5052:80'
+    depends_on:
+      - mamesododb
+  app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - '5000:5000'
+    volumes:
+      - ./:/app
+    depends_on:
+      - mamesododb
+volumes:
+  postgres_data:
