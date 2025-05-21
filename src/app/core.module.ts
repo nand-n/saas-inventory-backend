@@ -15,7 +15,9 @@ import { InvoiceModule } from './modules/invoice/invoice.module';
 import { SubscriptionPlanModule } from './modules/subscription-plan/subscription-plan.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { RouterModule } from '@nestjs/core';
-import { CoaModule } from './modules/chart-of-account/coa.module';
+// import { CoaModule } from './modules/chart-of-account/coa.module';
+import { AccountingModule } from './modules/accounting/accounting.module';
+import { PosModule } from './modules/pos/pos.module';
 
 @Global()
 @Module({
@@ -33,11 +35,17 @@ import { CoaModule } from './modules/chart-of-account/coa.module';
     InvoiceModule,
     SubscriptionPlanModule,
     InventoryModule,
-    CoaModule,
+    // CoaModule,
+    AccountingModule,
+    PosModule,
     RouterModule.register([
       {
         path: 'inventory',
         module: InventoryModule,
+      },
+      {
+        path: 'accounting',
+        module: AccountingModule,
       },
     ]),
     ChapaModule.registerAsync({

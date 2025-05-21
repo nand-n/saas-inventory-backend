@@ -1,5 +1,16 @@
 // inventory-item.dto.ts
-import { IsUUID, IsString, IsNotEmpty, IsOptional, IsNumber, IsDecimal } from 'class-validator';
+import {
+  IsUUID,
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsNumber,
+  IsEnum,
+} from 'class-validator';
+export enum PaymentTypeCashOrCredit {
+  CASH = 'cash',
+  CREDIT = 'credit',
+}
 
 export class CreateInventoryItemDto {
   @IsString()
@@ -13,6 +24,9 @@ export class CreateInventoryItemDto {
   @IsNumber()
   @IsNotEmpty()
   unit_price: number;
+  @IsNumber()
+  @IsNotEmpty()
+  unit_cost: number;
 
   @IsNumber()
   @IsOptional()
@@ -25,10 +39,30 @@ export class CreateInventoryItemDto {
   @IsUUID()
   @IsNotEmpty()
   category_id: string;
-  
+
   @IsUUID()
   @IsNotEmpty()
-  branch_id: string 
+  branch_id: string;
+
+  @IsUUID()
+  @IsNotEmpty()
+  inventory_account_id: string;
+
+  @IsUUID()
+  @IsNotEmpty()
+  payment_account_id: string;
+
+  @IsEnum(PaymentTypeCashOrCredit)
+  @IsOptional()
+  payment_type?: PaymentTypeCashOrCredit;
+
+  @IsString()
+  @IsOptional()
+  supplierId?: string;
+
+  @IsString()
+  @IsOptional()
+  tenantId?: string;
 }
 
 export class UpdateInventoryItemDto {
@@ -43,6 +77,10 @@ export class UpdateInventoryItemDto {
   @IsNumber()
   @IsOptional()
   unit_price?: number;
+
+  @IsNumber()
+  @IsOptional()
+  unit_cost?: number;
 
   @IsNumber()
   @IsOptional()

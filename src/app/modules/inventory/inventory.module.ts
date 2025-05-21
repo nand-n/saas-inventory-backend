@@ -18,38 +18,42 @@ import { StockTransferService } from './stock-transfer.service';
 import { TenantInventoryController } from './tenant-inventory.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { UsersModule } from '../users/users.module';
-
+import { AccountingModule } from '../accounting/accounting.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([
-    BranchInventory,
-    InventoryCategory, 
-    InventoryItem,
-    StockAdjustment,
-    StockTransfer 
-  ]), JwtModule , UsersModule],
+  imports: [
+    TypeOrmModule.forFeature([
+      BranchInventory,
+      InventoryCategory,
+      InventoryItem,
+      StockAdjustment,
+      StockTransfer,
+    ]),
+    JwtModule,
+    UsersModule,
+    AccountingModule,
+  ],
   controllers: [
     InventoryItemController,
     BranchInventoryController,
     InventoryCategoryController,
     StockAdjustmentController,
     StockTransferController,
-    TenantInventoryController
+    TenantInventoryController,
   ],
   providers: [
     InventoryItemService,
     BranchInventoryService,
-    InventoryCategoryService, 
+    InventoryCategoryService,
     StockAdjustmentService,
-    StockTransferService
-
+    StockTransferService,
   ],
   exports: [
     InventoryItemService,
     BranchInventoryService,
-    InventoryCategoryService, 
+    InventoryCategoryService,
     StockAdjustmentService,
-    StockTransferService
+    StockTransferService,
   ],
 })
 export class InventoryModule {}

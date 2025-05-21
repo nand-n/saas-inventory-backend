@@ -1,4 +1,10 @@
-import { IsUUID, IsNumber, IsNotEmpty, IsEnum, IsOptional } from 'class-validator';
+import {
+  IsUUID,
+  IsNumber,
+  IsNotEmpty,
+  IsEnum,
+  IsOptional,
+} from 'class-validator';
 import { AdjustmentReason } from '../entities/stock-adjustment.entity';
 
 export class CreateStockAdjustmentDto {

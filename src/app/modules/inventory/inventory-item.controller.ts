@@ -7,20 +7,30 @@ import {
   Param,
   Delete,
   Query,
+  Request,
+  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { InventoryItemService } from './inventory-item.service';
 import {
   CreateInventoryItemDto,
   UpdateInventoryItemDto,
 } from './dtos/inventory-item.dto';
+import { AuthGuard } from '@root/src/core/guards/auth.guard';
+import { RolesGuard } from '@root/src/core/guards/roles.guard';
 
 @Controller('inventory-items')
+@UseGuards(AuthGuard, RolesGuard)
 export class InventoryItemController {
   constructor(private readonly inventoryItemService: InventoryItemService) {}
 
   @Post()
-  async create(@Body() createDto: CreateInventoryItemDto) {
-    return await this.inventoryItemService.create(createDto);
+  async create(@Request() req: any, @Body() createDto: CreateInventoryItemDto) {
+    const tenantId = req.user.tenantId;
+    if (!tenantId) {
+      throw new UnauthorizedException('Tenant ID not found in request');
+    }
+    return await this.inventoryItemService.create({ ...createDto, tenantId });
   }
 
   @Get()
@@ -58,10 +68,7 @@ export class InventoryItemController {
     @Param('sku') sku: string,
     @Param('branchId') branchId: string,
   ) {
-    return await this.inventoryItemService.findBySkuAndBranchId(
-      sku,
-      branchId,
-    );
+    return await this.inventoryItemService.findBySkuAndBranchId(sku, branchId);
   }
 
   @Get('category/:categoryId/branch/:branchId')
