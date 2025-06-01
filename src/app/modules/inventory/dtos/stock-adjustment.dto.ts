@@ -27,6 +27,18 @@ export class CreateStockAdjustmentDto {
   @IsUUID()
   @IsNotEmpty()
   approved_by_id: string;
+
+  @IsUUID()
+  @IsOptional()
+  inventory_account_id?: string;
+
+  @IsUUID()
+  @IsOptional()
+  adjustment_gain_account_id?: string;
+
+  @IsUUID()
+  @IsOptional()
+  adjustment_loss_account_id?: string;
 }
 
 export class UpdateStockAdjustmentDto {

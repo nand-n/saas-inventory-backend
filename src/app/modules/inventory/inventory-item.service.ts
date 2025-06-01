@@ -13,6 +13,7 @@ import {
 } from './dtos/inventory-item.dto';
 import { CreateJournalDto } from '../accounting/dto/create-journal.dto';
 import { JournalService } from '../accounting/journal.service';
+import { InventoryCategory } from './entities/inventory-category.entity';
 
 @Injectable()
 export class InventoryItemService {
@@ -183,5 +184,41 @@ export class InventoryItemService {
     if (item.quantity < qty) throw new BadRequestException('Out of stock');
     item.quantity -= qty;
     await repo.save(item);
+  }
+  async getInventorySummary(
+    tenantId: string,
+    startDate?: string,
+    endDate?: string,
+  ) {
+    const query = this.itemRepository
+      .createQueryBuilder('item')
+      .leftJoin('item.category', 'category')
+      .leftJoin('item.branch', 'branch')
+      .select('branch.name', 'branch')
+      .addSelect('SUM(item.quantity)', 'stock')
+      .addSelect(
+        `SUM(CASE WHEN item.quantity <= item.reorder_level AND item.quantity > 0 THEN 1 ELSE 0 END)`,
+        'lowStock',
+      )
+      .addSelect(
+        `SUM(CASE WHEN item.quantity = 0 THEN 1 ELSE 0 END)`,
+        'outOfStock',
+      )
+      .where('branch.tenantId = :tenantId', { tenantId }) // ✅ Updated line
+      .groupBy('branch.name');
+    if (startDate && endDate) {
+      const nextDay = new Date(
+        new Date(endDate).getTime() + 24 * 60 * 60 * 1000,
+      );
+      query.andWhere(
+        'item.createdAt >= :startDate AND item.createdAt < :nextDay',
+        {
+          startDate,
+          nextDay,
+        },
+      );
+    }
+
+    return query.getRawMany();
   }
 }

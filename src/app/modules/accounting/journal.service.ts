@@ -110,6 +110,7 @@ export class JournalService {
             account,
             debit: line.debit,
             credit: line.credit,
+            tenant: tenant,
           });
         }),
       );
@@ -212,7 +213,7 @@ export class JournalService {
     }
 
     const journals = await this.journalRepo.find({
-      where, // uncommented this line to apply date filtering
+      where,
       relations: ['lines', 'lines.account', 'lines.account.category'],
     });
 

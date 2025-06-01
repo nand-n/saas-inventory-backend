@@ -47,7 +47,22 @@ export class InventoryItemController {
   async summarizeGroupedByBranch() {
     return await this.inventoryItemService.summarizeGroupedByBranch();
   }
-
+  @Get('summary/distribution')
+  async getInventorySummaryByBranch(
+    @Request() req: any,
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ) {
+    const tenantId = req.user.tenantId;
+    if (!tenantId) {
+      throw new UnauthorizedException('Tenant ID not found in request');
+    }
+    return this.inventoryItemService.getInventorySummary(
+      tenantId,
+      startDate,
+      endDate,
+    );
+  }
   @Get('branch/:branchId')
   async findByBranchId(@Param('branchId') branchId: string) {
     return await this.inventoryItemService.findByBranchId(branchId);

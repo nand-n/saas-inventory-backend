@@ -2,7 +2,6 @@ import { Entity, Column, ManyToOne, Index, Unique, JoinColumn } from 'typeorm';
 import { InventoryCategory } from './inventory-category.entity';
 import { BaseModel } from '@root/src/database/base.model';
 import { Branch } from '../../branchs/entities/branch.entity';
-// import { ChartOfAccount } from '../../accounting/entities/chart-of-account.entity';
 
 @Entity()
 @Unique(['sku'])
@@ -41,8 +40,4 @@ export class InventoryItem extends BaseModel {
   @Column({ type: 'uuid' })
   @Index()
   branch_id: string;
-
-  // @ManyToOne(() => ChartOfAccount)
-  // @JoinColumn({ name: 'inventoryAccountId' })
-  // inventoryAccount: ChartOfAccount;
 }
