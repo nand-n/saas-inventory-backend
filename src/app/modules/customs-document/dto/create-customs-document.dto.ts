@@ -10,7 +10,6 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { DocumentType, DocumentStatus } from '../entities/customs-document.entity';
-import { PartialType } from '@nestjs/mapped-types';
 
 export class AttachmentDto {
   @IsString()

@@ -7,7 +7,7 @@ export enum DocumentType {
   PACKING_LIST = 'packing_list',
   BILL_OF_LADING = 'bill_of_lading',
   CERTIFICATE_OF_ORIGIN = 'certificate_of_origin',
-  EXPORT_LICENSE = 'export_license',
+  EXPORT_LICEXPORT_LICENSEENSE = 'export_license',
   IMPORT_LICENSE = 'import_license',
   CUSTOMS_DECLARATION = 'customs_declaration',
   INSURANCE_CERTIFICATE = 'insurance_certificate',

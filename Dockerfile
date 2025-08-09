@@ -1,4 +1,3 @@
-
 # Development stage
 FROM node:20 AS development
 
@@ -6,13 +5,14 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN yarn install --frozen-lockfile
+RUN npm ci
 
 COPY . .
 
 EXPOSE 5000
 
-CMD ["yarn", "start:dev"]
+CMD ["npm", "run", "start:dev"]
+
 
 # Production stage
 FROM node:20 AS production
@@ -21,17 +21,17 @@ WORKDIR /app
 
 COPY package*.json ./
 
-# Install all dependencies including dev (needed for build)
-RUN yarn install --frozen-lockfile
+# Install all dependencies including dev for build
+RUN npm ci
 
 COPY . .
 
-# Build the app using Nest CLI (now available because devDeps installed)
-RUN yarn build
+# Build the app
+RUN npm run build
 
-# Remove dev dependencies to slim down final image
-RUN yarn install --frozen-lockfile
+# Remove dev dependencies to slim down image
+RUN npm prune --production
 
 EXPOSE 5000
 
-CMD ["yarn", "start:prod"]
+CMD ["npm", "run", "start:prod"]

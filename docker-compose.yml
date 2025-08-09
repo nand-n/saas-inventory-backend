@@ -11,16 +11,16 @@ services:
       - '5433:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
-  # retailpgadmintweb:
-  #   image: dpage/pgadmin4
-  #   container_name: retailpgadmintweb
-  #   environment:
-  #     PGADMIN_DEFAULT_EMAIL: admin@admin.com
-  #     PGADMIN_DEFAULT_PASSWORD: admin
-  #   ports:
-  #     - '5052:80'
-  #   depends_on:
-  #     - retaildb
+  retailpgadmintweb:
+    image: dpage/pgadmin4
+    container_name: retailpgadmintweb
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - '5052:80'
+    depends_on:
+      - retaildb
   app:
     build:
       context: ./
