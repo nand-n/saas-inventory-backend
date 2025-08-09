@@ -22,7 +22,7 @@ WORKDIR /app
 
 # Copy package.json + yarn.lock to install only prod dependencies
 COPY package*.json yarn.lock ./
-RUN yarn install --production --frozen-lockfile
+RUN yarn install  --frozen-lockfile
 
 # Copy only the compiled dist + other needed files
 COPY --from=build /app/dist ./dist
