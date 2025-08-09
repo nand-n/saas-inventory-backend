@@ -5,8 +5,8 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm ci
-
+RUN npm i --force
+ 
 COPY . .
 
 EXPOSE 5000
@@ -22,7 +22,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install all dependencies including dev for build
-RUN npm ci
+RUN npm i --force
 
 COPY . .
 
