@@ -29,9 +29,6 @@ COPY . .
 # Build the app
 RUN npm run build
 
-# Remove dev dependencies to slim down image
-RUN npm prune --production
-
 EXPOSE 5000
 
 CMD ["npm", "run", "start:prod"]
