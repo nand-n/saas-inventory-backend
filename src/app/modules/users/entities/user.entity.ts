@@ -6,6 +6,8 @@ import { PermissionGroup } from '../../permission/entities/permission-group.enti
 import { SubscriptionPlan } from '../../subscription-plan/entities/subscription-plan.entity';
 import { IsOptional } from 'class-validator';
 import { Payment } from '../../payment/entities/payment.entity';
+import { UserRole } from '../enums/user.enum';
+import { Department } from '../../department/entities/department.entity';
 
 @Entity()
 export class User extends BaseModel {
@@ -24,8 +26,10 @@ export class User extends BaseModel {
   @Column()
   phone: string;
 
-  @Column('simple-array', { default: ['user'] })
-  roles: string[];
+
+@Column('simple-array', { default: UserRole.VIEWER })
+roles: UserRole[];
+
 
   @ManyToOne(() => Tenant)
   tenant: Tenant;
@@ -47,8 +51,13 @@ export class User extends BaseModel {
   @JoinColumn({ name: 'subscription_plan_id' })
   subscriptionPlan?: SubscriptionPlan;
   
-  
   @IsOptional()
   @OneToMany(() => Payment, (payment) => payment.user)
   payments: Payment[];
+
+    @ManyToOne(() => Department, department => department.employees)
+    department!: Department;
+  
+    @Column({ nullable: true })
+    departmentId: string;
 }

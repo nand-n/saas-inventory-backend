@@ -24,7 +24,7 @@ export class TenantsController {
   }
 
   @Get()
-  @Roles('superadmin' , 'tenant_admin' ) 
+  // @Roles('superadmin' , 'tenant_admin' ) 
   findAll() {
     return this.tenantsService.findAll();
   }

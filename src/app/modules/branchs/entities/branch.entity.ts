@@ -3,6 +3,7 @@ import { User } from '../../users/entities/user.entity';
 import { Tenant } from '../../tenants/entities/tenants.entity';
 import { BaseModel } from '@root/src/database/base.model';
 import { OrganizationalNode } from '../../configurations/entities/organizational-node.entity';
+import { Department } from '../../department/entities/department.entity';
 
 @Entity()
 export class Branch  extends BaseModel{
@@ -34,4 +35,7 @@ export class Branch  extends BaseModel{
 
   @OneToMany(() => OrganizationalNode, node => node.branch)
   leadershipStructure: OrganizationalNode[];
+
+  @OneToMany(() => Department, department => department.branch)
+departments: Department[];
 }

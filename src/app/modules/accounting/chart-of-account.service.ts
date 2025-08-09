@@ -89,6 +89,95 @@ export class ChartOfAccountService {
     }
   }
 
+  async bulkCreate(
+  dtos: CreateChartOfAccountDto[],
+): Promise<ChartOfAccount[]> {
+  if (!dtos.length) {
+    throw new BadRequestException('No payloads provided');
+  }
+
+  const queryRunner = this.dataSource.createQueryRunner();
+  await queryRunner.connect();
+  await queryRunner.startTransaction();
+
+  try {
+    const tenantId = dtos[0].tenantId;
+
+    const tenant = await this.tenantRepo.findOneBy({ id: tenantId });
+    if (!tenant) {
+      throw new NotFoundException(`Tenant ${tenantId} not found`);
+    }
+
+    const result: ChartOfAccount[] = [];
+
+    for (const dto of dtos) {
+      // Validate category
+      const category = await this.categoryRepo.findOne({
+        where: { id: dto.categoryId, tenant: { id: tenantId } },
+      });
+      if (!category) {
+        throw new NotFoundException(
+          `Category ${dto.categoryId} not found`,
+        );
+      }
+
+      // Check duplicate by name
+      const existing = await this.coaRepo.findOne({
+        where: {
+          name: dto.name,
+          tenant: { id: tenantId },
+        },
+      });
+      if (existing) {
+        throw new BadRequestException(
+          `Chart of Account with name '${dto.name}' already exists for this tenant`,
+        );
+      }
+
+      // Parent check
+      let parent: ChartOfAccount | null = null;
+      if (dto.parentId) {
+        parent = await this.coaRepo.findOne({
+          where: { id: dto.parentId, tenant: { id: tenantId } },
+          relations: ['children'],
+        });
+        if (!parent) {
+          throw new NotFoundException(
+            `Parent ${dto.parentId} not found`,
+          );
+        }
+        if (parent.isLeaf) {
+          parent.isLeaf = false;
+          await queryRunner.manager.save(parent);
+        }
+      }
+
+      const { tenantId: _, categoryId, parentId, ...rest } = dto;
+
+      const payload: Partial<ChartOfAccount> = {
+        ...rest,
+        tenant,
+        category,
+        ...(parent ? { parent } : {}),
+      };
+
+      const newAccount = this.coaRepo.create(payload);
+      const saved = await queryRunner.manager.save(newAccount);
+
+      result.push(saved);
+    }
+
+    await queryRunner.commitTransaction();
+    return result;
+  } catch (error) {
+    await queryRunner.rollbackTransaction();
+    throw error;
+  } finally {
+    await queryRunner.release();
+  }
+}
+
+
   async findAll(tenantId: string): Promise<ChartOfAccount[]> {
     return this.coaRepo.find({
       where: { tenant: { id: tenantId } },

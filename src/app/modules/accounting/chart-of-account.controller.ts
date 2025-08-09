@@ -34,6 +34,21 @@ export class ChartOfAccountController {
     return this.chartOfAccountService.create({ ...dto, tenantId });
   }
 
+  @Post('bulk')
+@ApiOperation({ summary: 'Create multiple chart of accounts' })
+async bulkCreate(
+  @Request() req: any,
+  @Body() dtos: CreateChartOfAccountDto[],
+) {
+  const tenantId = req.user.tenantId;
+  if (!tenantId) {
+    throw new UnauthorizedException('Tenant ID not found in request');
+  }
+  return this.chartOfAccountService.bulkCreate(
+    dtos.map((dto) => ({ ...dto, tenantId })),
+  );
+}
+
   @Get()
   @ApiOperation({ summary: 'Get all chart of accounts for a tenant' })
   async findAll(@Request() req: any) {

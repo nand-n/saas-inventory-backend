@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
-import { IsString, IsOptional, IsArray } from 'class-validator';
+import { IsString, IsOptional, IsArray, IsEnum } from 'class-validator';
+import { UserRole } from '../enums/user.enum';
 
 export class CreateUserDto {
   @IsString()
@@ -17,10 +18,11 @@ export class CreateUserDto {
   @IsString()
   email: string;
   
+  
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
-  roles?: string[];
+  @IsEnum(UserRole, { each: true })
+  roles?: UserRole[];
 
   @IsOptional()
   @IsString()

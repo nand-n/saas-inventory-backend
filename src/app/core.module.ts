@@ -18,6 +18,19 @@ import { RouterModule } from '@nestjs/core';
 // import { CoaModule } from './modules/chart-of-account/coa.module';
 import { AccountingModule } from './modules/accounting/accounting.module';
 import { PosModule } from './modules/pos/pos.module';
+import { EmployeeModule } from './modules/hr/employee.module';
+import { PayrollsModule } from './modules/payroll/payrolls.module';
+import { SuppliersModule } from './modules/supliers/suppliers.module';
+import { ShipmentsModule } from './modules/shipment/shipments.module';
+import { ProductsModule } from './modules/product/products.module';
+import { OrdersModule } from './modules/order/orders.module';
+import { DepartmentModule } from './modules/department/department.module';
+import { CustomsDocumentsModule } from './modules/customs-document/customs-documents.module';
+import { PurchaseOrderModule } from './modules/purchase-order/purchase-order.module';
+import { PurchaseOrderItemModule } from './modules/purchase-order/purchase-order-item.module';
+import { RFQModule } from './modules/rfq/rfq.module';
+import { CustomersModule } from './modules/customers/customer.module';
+import { SalesOrderModule } from './modules/sales-order/sales-order.module';
 
 @Global()
 @Module({
@@ -35,7 +48,6 @@ import { PosModule } from './modules/pos/pos.module';
     InvoiceModule,
     SubscriptionPlanModule,
     InventoryModule,
-    // CoaModule,
     AccountingModule,
     PosModule,
     RouterModule.register([
@@ -48,6 +60,19 @@ import { PosModule } from './modules/pos/pos.module';
         module: AccountingModule,
       },
     ]),
+    EmployeeModule,
+    PayrollsModule,
+    SuppliersModule,
+    ShipmentsModule,
+    ProductsModule,
+    OrdersModule,
+    DepartmentModule,
+    CustomsDocumentsModule,
+    PurchaseOrderModule,
+    PurchaseOrderItemModule,
+    CustomersModule,
+    SalesOrderModule,
+    RFQModule,
     ChapaModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({

@@ -1,4 +1,5 @@
 import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsNumber } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateBranchDto {
   @IsString()
@@ -7,14 +8,16 @@ export class CreateBranchDto {
 
   @IsString()
   @IsNotEmpty()
-  location?: string;
-  
+  location: string;
+
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
+  @Type(() => Number)
   lat?: number;
-  
+
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
+  @Type(() => Number)
   lng?: number;
 
   @IsString()

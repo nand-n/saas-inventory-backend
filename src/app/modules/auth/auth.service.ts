@@ -74,6 +74,7 @@ export class AuthService {
       tokenExpires,
       user,
       tenantId: user.tenantId,
+      tenant: user.tenant
       
     };
   }
@@ -90,7 +91,7 @@ export class AuthService {
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
     const tokenExpires = new Date();
-    tokenExpires.setHours(tokenExpires.getHours() + 1); // Adjust based on your JWT configuration
+    tokenExpires.setHours(tokenExpires.getHours() + 1);
 
     return { token, refreshToken, tokenExpires };
   }
@@ -123,10 +124,10 @@ export class AuthService {
   async register(
     userDto: CreateUserDto,
   ): Promise<{ access_token: string; user: User }> {
-    const existingUser = await this.usersService.findOneByEmail(userDto.email);
-    if (existingUser) {
-      throw new ConflictException('Email already registered');
-    }
+    // const existingUser = await this.usersService.findOneByEmail(userDto.email);
+    // if (existingUser) {
+    //   throw new ConflictException('Email already registered');
+    // }
 
     const hashedPassword = this.hashPassword(userDto.password);
     const createdUser = await this.usersService.create({

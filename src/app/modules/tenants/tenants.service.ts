@@ -9,6 +9,7 @@ import { UsersService } from '../users/users.service';
 import { SubscriptionPlan } from '../subscription-plan/entities/subscription-plan.entity';
 import { BranchesService } from '../branchs/branches.service';
 import * as crypto from 'crypto';
+import { UserRole } from '../users/enums/user.enum';
 
 
 @Injectable()
@@ -47,7 +48,7 @@ export class TenantsService {
       email: createTenantDto.tenantAdmin.email,
       phone: createTenantDto.tenantAdmin.phone,
       password: hashedPassword,
-      roles: ['tenant_admin'],
+      roles: [UserRole.TENANT_ADMIN],
     
     });
 
@@ -59,6 +60,7 @@ export class TenantsService {
       name: createTenantDto.name,
       numberOfBranches: createTenantDto.numberOfBranches,
       industryType,
+      contactEmail: createTenantDto.tenantAdmin.email,
       users: [adminUser],
       isActive: createTenantDto.isActive ?? true,
     });
@@ -70,11 +72,18 @@ export class TenantsService {
     return createdTenant
   }
 
-
-
   async findAll(): Promise<Tenant[]> {
-    return this.tenantRepository.find();
-  }
+  return this.tenantRepository
+    .createQueryBuilder('tenant')
+    .leftJoinAndSelect('tenant.industryType', 'industryType')
+    .leftJoinAndSelect('tenant.branches', 'branches')
+    .leftJoinAndSelect('tenant.configurations', 'configurations')
+    .leftJoinAndSelect('tenant.currentSubscriptionPlan', 'currentSubscriptionPlan')
+    .leftJoin('tenant.users', 'users')
+    .addSelect(['users.id', 'users.firstName', 'users.lastName', 'users.email' , 'users.phone' , 'users.roles'])
+    .getMany();
+}
+
 
   async findOne(id: string): Promise<Tenant> {
     const tenant = await this.tenantRepository.findOne({ where: { id }, relations: ['industryType', 'branches' , 'configurations', "currentSubscriptionPlan"] });
