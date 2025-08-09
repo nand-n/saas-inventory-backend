@@ -1,33 +1,36 @@
-# ---------- Build Stage ----------
-FROM node:20 AS build
+
+# Development stage
+FROM node:20 AS development
 
 WORKDIR /app
 
-# Copy package.json + yarn.lock first (better caching)
-COPY package*.json yarn.lock ./
+COPY package*.json ./
 
-# Install all dependencies (including devDeps for build)
 RUN yarn install --frozen-lockfile
 
-# Copy the rest of the app
 COPY . .
 
-# Build the NestJS project
-RUN yarn build
+EXPOSE 5000
 
-# ---------- Production Stage ----------
+CMD ["yarn", "start:dev"]
+
+# Production stage
 FROM node:20 AS production
 
 WORKDIR /app
 
-# Copy package.json + yarn.lock to install only prod dependencies
-COPY package*.json yarn.lock ./
-RUN yarn install  --frozen-lockfile
+COPY package*.json ./
 
-# Copy only the compiled dist + other needed files
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/package*.json ./
+# Install all dependencies including dev (needed for build)
+RUN yarn install --frozen-lockfile
+
+COPY . .
+
+# Build the app using Nest CLI (now available because devDeps installed)
+RUN yarn build
+
+# Remove dev dependencies to slim down final image
+RUN yarn install --frozen-lockfile
 
 EXPOSE 5000
 
