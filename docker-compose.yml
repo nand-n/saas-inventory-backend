@@ -28,8 +28,8 @@ services:
       target: production
     ports:
       - '5002:5000'
-    volumes:
-      - ./:/app
+    # volumes:
+      # - ./:/app
     depends_on:
       - retaildb
 volumes:
