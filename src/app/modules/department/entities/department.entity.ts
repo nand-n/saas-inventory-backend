@@ -1,4 +1,3 @@
-// src/departments/entities/department.entity.ts
 
 import {
   Entity,

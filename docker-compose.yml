@@ -21,6 +21,7 @@ services:
   #     - '5052:80'
   #   depends_on:
   #     - retaildb
+ 
   app:
     build:
       context: ./
@@ -28,9 +29,13 @@ services:
       target: production
     ports:
       - '5002:5000'
-    # volumes:
-      # - ./:/app
+    volumes:
+      - ./:/app
     depends_on:
       - retaildb
 volumes:
   postgres_data:
+networks:
+  default:
+    driver: bridge
+
