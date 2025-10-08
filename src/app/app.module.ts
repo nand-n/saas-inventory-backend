@@ -38,11 +38,10 @@ configuration values obtained from a ConfigService. */
         database: configService.get<string>('db.name'),
         entities: [__dirname + '/../**/*.entity{.ts,.js}'],
         synchronize: configService.get<boolean>('db.synchronize'),
-        ssl: {
-          rejectUnauthorized: false,
-        
-        },
-        // ssl:true
+        // ssl: {
+        //   rejectUnauthorized: false,
+        // },
+        ssl:true
       }),
       inject: [ConfigService],
     }),

@@ -1,27 +1,26 @@
 version: '3'
-
 services:
-  # retaildb:
-  #   image: postgres
-  #   container_name: retail
-  #   environment:
-  #     POSTGRES_USER: postgres
-  #     POSTGRES_PASSWORD: postgres
-  #     POSTGRES_DB: retaildb
-  #   ports:
-  #     - '5433:5432'
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  # retailpgadmintweb:
-  #   image: dpage/pgadmin4
-  #   container_name: retailpgadmintweb
-  #   environment:
-  #     PGADMIN_DEFAULT_EMAIL: admin@admin.com
-  #     PGADMIN_DEFAULT_PASSWORD: admin
-  #   ports:
-  #     - '5052:80'
-  #   depends_on:
-  #     - retaildb
+  retaildb:
+    image: postgres
+    container_name: retail
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: retaildb
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  retailpgadmintweb:
+    image: dpage/pgadmin4
+    container_name: retailpgadmintweb
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - '5052:80'
+    depends_on:
+      - retaildb
  
   app:
     build:
@@ -32,11 +31,11 @@ services:
       - '5000:5000'
     volumes:
       - ./:/app
-    # depends_on:
-    #   - retaildb
-# volumes:
-#   postgres_data:
-# networks:
-#   default:
-#     driver: bridge
+    depends_on:
+      - retaildb
+volumes:
+  postgres_data:
+networks:
+  default:
+    driver: bridge
 
