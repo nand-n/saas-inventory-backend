@@ -1,16 +1,17 @@
 version: '3'
+
 services:
-  retaildb:
-    image: postgres
-    container_name: retail
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: retaildb
-    ports:
-      - '5433:5432'
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+  # retaildb:
+  #   image: postgres
+  #   container_name: retail
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres
+  #     POSTGRES_DB: retaildb
+  #   ports:
+  #     - '5433:5432'
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
   # retailpgadmintweb:
   #   image: dpage/pgadmin4
   #   container_name: retailpgadmintweb
@@ -28,14 +29,14 @@ services:
       dockerfile: Dockerfile
       target: production
     ports:
-      - '5002:5000'
+      - '5000:5000'
     volumes:
       - ./:/app
-    depends_on:
-      - retaildb
-volumes:
-  postgres_data:
-networks:
-  default:
-    driver: bridge
+    # depends_on:
+    #   - retaildb
+# volumes:
+#   postgres_data:
+# networks:
+#   default:
+#     driver: bridge
 
