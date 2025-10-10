@@ -40,13 +40,13 @@ WORKDIR /app
 
 COPY package*.json yarn.lock ./
 
-RUN yarn install --frozen-lockfile
+RUN npm i --f
 
 COPY . .
 
 EXPOSE 5000
 
-CMD ["yarn", "start:dev"]
+CMD ["npm", "run", "start:dev"]
 
 # Build stage
 FROM node:20 AS build
@@ -55,7 +55,7 @@ WORKDIR /app
 
 COPY package*.json yarn.lock ./
 
-RUN yarn install --frozen-lockfile
+RUN npm i --f
 
 COPY . .
 
@@ -69,11 +69,11 @@ WORKDIR /app
 
 COPY package*.json yarn.lock ./
 
-RUN yarn install --production --frozen-lockfile
+RUN npm i --f
 
 # Copy only dist from build stage
 COPY --from=build /app/dist ./dist
 
 EXPOSE 5000
 
-CMD ["yarn", "start:prod"]
+CMD ["npm", "run", "start:prod"]
