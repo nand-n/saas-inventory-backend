@@ -1,6 +1,7 @@
-import { Entity, Column, ManyToOne } from 'typeorm';
+import { Entity, Column, ManyToOne, OneToMany } from 'typeorm';
 import { Employee } from '../../hr/entities/employee.entity';
 import { BaseModel } from '@root/src/database/base.model';
+import { PayrollAdjustment } from './payroll-adjestment.entity';
 
 export enum PayrollStatus {
   DRAFT = 'draft',
@@ -107,6 +108,9 @@ export class Payroll extends BaseModel {
 
   @ManyToOne(() => Employee, employee => employee.payrolls)
   employee!: Employee;
+
+  @OneToMany(() => PayrollAdjustment, deduction => deduction.payroll)
+adjustments!: PayrollAdjustment[];
 
 
 }

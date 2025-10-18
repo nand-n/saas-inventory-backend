@@ -31,6 +31,7 @@ import { PurchaseOrderItemModule } from './modules/purchase-order/purchase-order
 import { RFQModule } from './modules/rfq/rfq.module';
 import { CustomersModule } from './modules/customers/customer.module';
 import { SalesOrderModule } from './modules/sales-order/sales-order.module';
+import { CrmModule } from './modules/crm/crm.module';
 
 @Global()
 @Module({
@@ -73,6 +74,7 @@ import { SalesOrderModule } from './modules/sales-order/sales-order.module';
     CustomersModule,
     SalesOrderModule,
     RFQModule,
+    CrmModule,
     ChapaModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({

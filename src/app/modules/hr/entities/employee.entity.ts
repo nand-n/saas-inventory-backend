@@ -3,6 +3,7 @@ import { Department } from '../../department/entities/department.entity';
 import { User } from '../../users/entities/user.entity';
 import { Payroll } from '../../payroll/entities/payroll.entity';
 import { BaseModel } from '@root/src/database/base.model';
+import { PayrollAdjustment } from '../../payroll/entities/payroll-adjestment.entity';
 
 export enum EmploymentStatus {
   ACTIVE = 'active',
@@ -175,4 +176,7 @@ profilePicture!: string;
 
   @OneToMany(() => Payroll, payroll => payroll.employee)
   payrolls!: Payroll[];
+
+  @OneToMany(() => PayrollAdjustment, deduction => deduction.employee)
+adjustments!: PayrollAdjustment[];
 }

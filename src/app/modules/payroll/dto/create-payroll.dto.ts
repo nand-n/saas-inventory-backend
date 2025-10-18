@@ -8,10 +8,12 @@ import {
   IsObject,
   ValidateNested,
   ArrayMinSize,
+  IsArray,
 } from 'class-validator';
 import { PayrollStatus, PayrollType } from '../entities/payroll.entity';
 import { Type } from 'class-transformer';
 import { CreateJournalDto } from '../../accounting/dto/create-journal.dto';
+import { CreatePayrollAdjustmentDto } from './create-payroll-adjestime.dto';
 
 export class CreatePayrollDto {
   @IsDateString() payPeriodStart: Date;
@@ -57,6 +59,11 @@ export class CreatePayrollDto {
 
   @IsUUID() @IsString() accruedPayrollLiabilityAccountId: string;
 
-
+  
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreatePayrollAdjustmentDto)
+  adjustments?: CreatePayrollAdjustmentDto[];
 
 }

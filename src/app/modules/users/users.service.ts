@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
-import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
@@ -51,5 +50,15 @@ export class UsersService {
     const updatedUser = await this.findById(id);
     return updatedUser;
   }
-  
+  async findByTenant(tenantId: string): Promise<User[]> {
+  const users = await this.usersRepository.find({
+    where: { tenantId },
+    relations: ['tenant', 'branch', 'department', 'permissionGroups'],
+  });
+  if (!users || users.length === 0) {
+    throw new Error('No users found for this tenant');
+  }
+  return users;
+}
+
 }
