@@ -7,12 +7,10 @@ import {
   IsString,
   IsObject,
   ValidateNested,
-  ArrayMinSize,
   IsArray,
 } from 'class-validator';
 import { PayrollStatus, PayrollType } from '../entities/payroll.entity';
 import { Type } from 'class-transformer';
-import { CreateJournalDto } from '../../accounting/dto/create-journal.dto';
 import { CreatePayrollAdjustmentDto } from './create-payroll-adjestime.dto';
 
 export class CreatePayrollDto {
@@ -24,17 +22,6 @@ export class CreatePayrollDto {
   @IsOptional() @IsNumber() overtimeHours?: number;
 
   @IsNumber() grossPay: number;
-  @IsOptional() @IsNumber() overtimePay?: number;
-  @IsOptional() @IsNumber() bonusPay?: number;
-  @IsOptional() @IsNumber() commissionPay?: number;
-
-  @IsOptional() @IsNumber() federalTax?: number;
-  @IsOptional() @IsNumber() stateTax?: number;
-  @IsOptional() @IsNumber() socialSecurityTax?: number;
-  @IsOptional() @IsNumber() medicareTax?: number;
-  @IsOptional() @IsNumber() healthInsurance?: number;
-  @IsOptional() @IsNumber() retirementContribution?: number;
-  @IsOptional() @IsNumber() otherDeductions?: number;
 
   @IsNumber() netPay: number;
 

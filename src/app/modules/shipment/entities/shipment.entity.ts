@@ -105,6 +105,29 @@ export class Shipment  extends BaseModel {
     clearanceDate: Date;
   };
 
+   /** 🚚 Domestic delivery–specific fields */
+  @Column({ nullable: true })
+  deliveryAgentName?: string;
+
+  @Column({ nullable: true })
+  deliveryAgentPhone?: string;
+
+  @Column({ nullable: true })
+  vehiclePlateNumber?: string;
+
+  @Column({ nullable: true })
+  deliveryProofUrl?: string; // signed receipt or photo
+
+  @Column({ nullable: true })
+  recipientName?: string;
+
+  @Column({ nullable: true })
+  recipientSignatureUrl?: string;
+
+  @Column('boolean', { default: false })
+  isPartialDelivery!: boolean;
+
+
   @Column('text', { nullable: true })
   notes!: string;
 

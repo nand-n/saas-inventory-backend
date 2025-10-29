@@ -6,11 +6,17 @@ import { UpdatePayrollDto } from './dto/update-payroll.dto';
 import {  CreatePayrollAdjustmentDto } from './dto/create-payroll-adjestime.dto';
 import { PayrollAdjustment } from './entities/payroll-adjestment.entity';
 import { PayrollAdjustmentsService } from './payroll-adjustments.service';
+import { PayrollRunService } from './payroll-run.service';
+import { CreatePayrollRunDto } from './dto/create-payroll-run.dto';
+import { PayrollRun, PayrollRunStatus } from './entities/payroll-run.entity';
+import { UpdatePayrollRunDto } from './dto/update-payroll-run.dto';
 
 @Controller('payrolls')
 export class PayrollsController {
   constructor(private readonly service: PayrollsService , 
     private readonly adjustmentsService: PayrollAdjustmentsService,
+    private readonly payrollRunService: PayrollRunService,
+
   ) {}
 
   @Post()
@@ -18,9 +24,44 @@ export class PayrollsController {
     return this.service.create(dto);
   }
 
+    @Post('bulk-delete')
+bulkRemove(@Body() body: { ids: string[] }): Promise<void> {
+  return this.service.bulkRemove(body.ids);
+}
+   @Post('run')
+  createRun(@Body() dto: CreatePayrollRunDto): Promise<PayrollRun> {
+    return this.payrollRunService.create(dto);
+  }
+
+     @Post('run/:id/update')
+  updateRun(
+      @Param('id') id: string,
+    @Body() dto: UpdatePayrollRunDto): Promise<PayrollRun> {
+    return this.payrollRunService.update( id,dto);
+  }
+
+  @Patch('run/:id/status')
+async updatePayrollRunStatus(
+  @Param('id') id: string,
+  @Body() body: { status: PayrollRunStatus },Z
+): Promise<PayrollRun> {
+  return this.payrollRunService.updateStatus(id, body.status);
+}
+
   @Get()
   findAll(): Promise<Payroll[]> {
     return this.service.findAll();
+  }
+
+   @Get('run')
+  getPayrollRuns(): Promise<PayrollRun[]> {
+    return  this.payrollRunService.findAll();
+  }
+
+
+  @Get('adjustments')
+  getPayrollAdjestments(): Promise<PayrollAdjustment[]> {
+    return  this.adjustmentsService.findAll();
   }
 
   @Get(':id')
@@ -38,12 +79,14 @@ export class PayrollsController {
     return this.service.remove(id);
   }
 
+
+
   // ---------------- Payroll Adjustment Endpoints ----------------
 
   /**
    * ➕➖ Create a payroll adjustment (addition or deduction)
    */
-  @Post(':payrollId/adjustments')
+  @Post('adjustments/:payrollId')
   async createAdjustment(
     @Param('payrollId') payrollId: string,
     @Body() dto: CreatePayrollAdjustmentDto,

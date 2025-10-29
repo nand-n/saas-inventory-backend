@@ -1,7 +1,8 @@
-import { Entity, Column, ManyToOne, OneToMany } from 'typeorm';
+import { Entity, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { Employee } from '../../hr/entities/employee.entity';
 import { BaseModel } from '@root/src/database/base.model';
 import { PayrollAdjustment } from './payroll-adjestment.entity';
+import { PayrollRun } from './payroll-run.entity';
 
 export enum PayrollStatus {
   DRAFT = 'draft',
@@ -29,48 +30,17 @@ export class Payroll extends BaseModel {
   @Column()
   payDate!: Date;
 
-  @Column('decimal', { precision: 5, scale: 2 })
+  @Column('numeric', { precision: 10, scale: 2, default: 0 })
   hoursWorked!: number;
 
-  @Column('decimal', { precision: 5, scale: 2, default: 0 })
+  @Column('numeric', { precision: 10, scale: 2, default: 0 })
   overtimeHours!: number;
 
-  @Column('decimal', { precision: 15, scale: 2 })
+  @Column('numeric', { precision: 18, scale: 2, default: 0 })
   grossPay!: number;
 
-  @Column('decimal', { precision: 15, scale: 2, default: 0 })
-  overtimePay!: number;
-
-  @Column('decimal', { precision: 15, scale: 2, default: 0 })
-  bonusPay!: number;
-
-  @Column('decimal', { precision: 15, scale: 2, default: 0 })
-  commissionPay!: number;
-
-  @Column('decimal', { precision: 15, scale: 2, default: 0 })
-  federalTax!: number;
-
-  @Column('decimal', { precision: 15, scale: 2, default: 0 })
-  stateTax!: number;
-
-  @Column('decimal', { precision: 15, scale: 2, default: 0 })
-  socialSecurityTax!: number;
-
-  @Column('decimal', { precision: 15, scale: 2, default: 0 })
-  medicareTax!: number;
-
-  @Column('decimal', { precision: 15, scale: 2, default: 0 })
-  healthInsurance!: number;
-
-  @Column('decimal', { precision: 15, scale: 2, default: 0 })
-  retirementContribution!: number;
-
-  @Column('decimal', { precision: 15, scale: 2, default: 0 })
-  otherDeductions!: number;
-
-  @Column('decimal', { precision: 15, scale: 2 })
+  @Column('numeric', { precision: 18, scale: 2, default: 0 })
   netPay!: number;
-
 
   @Column({nullable:true})
   accruedPayrollLiabilityAccountId!: string;
@@ -85,7 +55,6 @@ export class Payroll extends BaseModel {
   @Column({nullable:true})
   taxesPayableAccountId: string
 
-  
   @Column({
     type: 'enum',
     enum: PayrollStatus,
@@ -109,8 +78,14 @@ export class Payroll extends BaseModel {
   @ManyToOne(() => Employee, employee => employee.payrolls)
   employee!: Employee;
 
-  @OneToMany(() => PayrollAdjustment, deduction => deduction.payroll)
-adjustments!: PayrollAdjustment[];
+  @OneToMany(() => PayrollAdjustment, adjustments => adjustments.payroll)
+  adjustments!: PayrollAdjustment[];
 
+  @ManyToOne(() => PayrollRun, run => run.payrolls, { nullable: true })
+@JoinColumn({ name: 'payrollRunId' })
+run?: PayrollRun;
+
+@Column({ nullable: true })
+payrollRunId?: string;
 
 }

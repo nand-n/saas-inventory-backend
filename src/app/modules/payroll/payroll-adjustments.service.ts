@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { AdjustmentDirection, PayrollAdjustment } from './entities/payroll-adjestment.entity';
 import { Payroll } from './entities/payroll.entity';
 import { JournalService } from '../accounting/journal.service';
@@ -24,6 +24,7 @@ export class PayrollAdjustmentsService {
 
     private readonly journalService: JournalService,
     private readonly employeeService: EmployeeService,
+    private readonly dataSource: DataSource,
   ) {}
 
   /**
@@ -91,6 +92,102 @@ export class PayrollAdjustmentsService {
 
     return await this.repo.save(adjustment);
   }
+
+  async bulkCreate(dtos: CreatePayrollAdjustmentDto[]): Promise<PayrollAdjustment[]> {
+  if (!dtos || !dtos.length) {
+    throw new BadRequestException('No payroll adjustments provided');
+  }
+
+  console.log(dtos , "*********** what is the data ")
+  // Use query runner for transaction safety
+  const queryRunner = this.dataSource.createQueryRunner();
+  await queryRunner.connect();
+  await queryRunner.startTransaction();
+
+  try {
+    const createdAdjustments: PayrollAdjustment[] = [];
+
+    for (const dto of dtos) {
+      const employee = await this.employeeService.findOne(dto.employeeId);
+      if (!employee) throw new NotFoundException(`Employee ${dto.employeeId} not found`);
+
+      const payroll = dto.payrollId
+        ? await this.payrollRepo.findOne({ where: { id: dto.payrollId } })
+        : null;
+
+      if (!dto.debitAccountId || !dto.creditAccountId) {
+        throw new BadRequestException(
+          `Missing required Chart of Account IDs for employee ${employee.firstName} ${employee.lastName}`,
+        );
+      }
+
+      const description = `${
+        dto.direction === AdjustmentDirection.ADDITION ? 'Addition' : 'Deduction'
+      } (${dto.type}) for ${employee.firstName} ${employee.lastName}: ${dto.reason ?? ''}`;
+
+      const journalDto: CreateJournalDto = {
+        tenantId: employee.user?.tenantId ?? '',
+        date: new Date(),
+        description,
+        lines: [],
+      };
+
+      if (dto.direction === AdjustmentDirection.ADDITION) {
+        // e.g., Allowance, Bonus, Overtime
+        journalDto.lines.push(
+          {
+            accountId: dto.debitAccountId, // Expense
+            debit: Number(dto.amount),
+            credit: 0,
+          },
+          {
+            accountId: dto.creditAccountId, // Liability or Payable
+            debit: 0,
+            credit: Number(dto.amount),
+          },
+        );
+      } else {
+        // Deduction (Loan, Fine, Tax)
+        journalDto.lines.push(
+          {
+            accountId: dto.debitAccountId, // Liability (reversal)
+            debit: Number(dto.amount),
+            credit: 0,
+          },
+          {
+            accountId: dto.creditAccountId, // Expense or Payable decrease
+            debit: 0,
+            credit: Number(dto.amount),
+          },
+        );
+      }
+
+      // Create journal entry
+      await this.journalService.create(journalDto);
+
+      // Create adjustment record
+      const adjustment = this.repo.create({
+        ...dto,
+        amount:Number(dto.amount),
+        employee,
+        payroll: payroll ?? undefined,
+      });
+
+      const savedAdjustment = await queryRunner.manager.save(adjustment);
+      createdAdjustments.push(savedAdjustment);
+    }
+
+    await queryRunner.commitTransaction();
+    return createdAdjustments;
+  } catch (error) {
+    await queryRunner.rollbackTransaction();
+    throw error;
+  } finally {
+    await queryRunner.release();
+  }
+}
+
+
 
   /**
    * 💰 Process adjustment payment (e.g., bonus disbursement or deduction settlement)

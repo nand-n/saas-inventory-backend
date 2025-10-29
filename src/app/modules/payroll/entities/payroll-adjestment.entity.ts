@@ -61,8 +61,9 @@ export class PayrollAdjustment extends BaseModel {
   /**
    * 💰 Amount of the adjustment
    */
-  @Column('decimal', { precision: 15, scale: 2 })
+  @Column({ type: 'numeric', precision: 12, scale: 2 })
   amount!: number;
+
 
   /**
    * 🧾 Description or reason (e.g., “Overtime 5h @ 200/hr”)

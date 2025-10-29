@@ -31,7 +31,7 @@ async create(dto: CreatePurchaseOrderDto): Promise<PurchaseOrder> {
 
   // Map DTO items -> PurchaseOrderItem entities
   const items = dto.items.map((itemDto) => {
-    const lineTotal = itemDto.quantity * itemDto.unit_cost;
+    const lineTotal = Number(itemDto.quantity) * Number(itemDto.unit_cost);
     const poi = this.poItemRepository.create({
       productName: itemDto.productName,
       unit_cost: itemDto.unit_cost,

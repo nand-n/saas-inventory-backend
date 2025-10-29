@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Payroll, PayrollStatus } from './entities/payroll.entity';
 import { CreatePayrollDto } from './dto/create-payroll.dto';
 import { UpdatePayrollDto } from './dto/update-payroll.dto';
@@ -8,6 +8,7 @@ import { JournalService } from '../accounting/journal.service';
 import { EmployeeService } from '../hr/employee.service';
 import { CreateJournalDto } from '../accounting/dto/create-journal.dto';
 import { PayrollAdjustmentsService } from './payroll-adjustments.service';
+import { AdjustmentDirection, AdjustmentType } from './entities/payroll-adjestment.entity';
 
 @Injectable()
 export class PayrollsService {
@@ -20,112 +21,64 @@ export class PayrollsService {
 
   ) {}
 
-
-// async create(dto: CreatePayrollDto): Promise<Payroll> {
-//   const employee = await this.employeeService.findOne(dto.employeeId);
-
-//   if (!employee) {
-//     throw new NotFoundException('Employee not found');
-//   }
-
-//   // 2️⃣ Validate COA IDs
-//   if (
-//     !dto.salaryExpenseAccountId ||
-//     !dto.accruedPayrollLiabilityAccountId ||
-//     !dto.taxesPayableAccountId ||
-//     !dto.bankAccountId
-//   ) {
-//     throw new BadRequestException('Missing required Chart of Account IDs');
-//   }
-
-//   // 3️⃣ Calculate totals
-//   const grossPay = dto.grossPay;
-//   const taxes = 
-//     (dto.federalTax || 0) +
-//     (dto.stateTax || 0) +
-//     (dto.socialSecurityTax || 0) +
-//     (dto.medicareTax || 0);
-//   const netPay = dto.netPay;
-
-//   // 4️⃣ Build Journal DTO
-//   const journalDto: CreateJournalDto = {
-//     tenantId: employee.user.tenantId ?? '',
-//     date: dto.payDate,
-//     description: `Payroll for ${employee.firstName} ${employee.lastName}`,
-//     lines: [
-//       // Salaries Expense (debit)
-//       {
-//         accountId: dto.salaryExpenseAccountId,
-//         debit: grossPay,
-//         credit: 0,
-//       },
-//       // Taxes Payable (credit)
-//       {
-//         accountId: dto.taxesPayableAccountId,
-//         debit: 0,
-//         credit: taxes,
-//       },
-//       // Net Pay Liability (credit)
-//       {
-//         accountId: dto.accruedPayrollLiabilityAccountId,
-//         debit: 0,
-//         credit: netPay,
-//       },
-//     ],
-//   };
-
-//   // Optional: When paying immediately, you can also do:
-//   // Debit Net Pay Liability, Credit Bank (when paid out).
-
-//   // 5️⃣ Create Journal
-//   await this.journalService.create(journalDto);
-
-//   // 6️⃣ Create Payroll record
-//   const payroll = this.repo.create(dto);
-//   payroll.employee = employee;
-
-//   return await this.repo.save(payroll);
-// }
-
 async create(dto: CreatePayrollDto): Promise<Payroll> {
   const employee = await this.employeeService.findOne(dto.employeeId);
   if (!employee) throw new NotFoundException('Employee not found');
 
-  // 2️⃣ Validate COA IDs
-  if (
-    !dto.salaryExpenseAccountId ||
-    !dto.accruedPayrollLiabilityAccountId ||
-    !dto.taxesPayableAccountId ||
-    !dto.bankAccountId
-  ) {
-    throw new BadRequestException('Missing required Chart of Account IDs');
+  const grossPay = Number(dto.grossPay || 0);
+  let totalAdditions = 0;
+  let totalDeductions = 0;
+
+  // 🔹 Loop through adjustments
+  for (const adj of dto.adjustments || []) {
+    if (!adj) continue;
+
+    let adjAmount = 0;
+
+    switch (adj.type) {
+      case AdjustmentType.TAX:
+        // TAX = percentage of gross pay
+        adjAmount = (grossPay * Number(adj.amount)) / 100;
+        break;
+
+      default:
+        // All others = flat amount
+        adjAmount = Number(adj.amount);
+        break;
+    }
+
+    if (adj.direction === AdjustmentDirection.ADDITION) {
+      totalAdditions += adjAmount;
+    } else if (adj.direction === AdjustmentDirection.DEDUCTION) {
+      totalDeductions += adjAmount;
+    }
+
+    // Store computed amount into metadata (optional, useful for logs)
+    adj.metadata = {
+      ...adj.metadata,
+      computedAmount: adjAmount,
+      originalAmount: adj.amount,
+      basedOn: adj.type === AdjustmentType.TAX ? 'percentage' : 'flat',
+    };
   }
 
-  // 3️⃣ Calculate totals
-  const grossPay = dto.grossPay;
-  const taxes =
-    (dto.federalTax || 0) +
-    (dto.stateTax || 0) +
-    (dto.socialSecurityTax || 0) +
-    (dto.medicareTax || 0);
+  const netPay = grossPay + totalAdditions - totalDeductions;
 
-  const netPay = dto.netPay;
-
-  // 4️⃣ Build Journal DTO
+  // === Journal ===
   const journalDto: CreateJournalDto = {
-    tenantId: employee.user.tenantId ?? '',
+    tenantId: employee.user?.tenantId ?? '',
     date: dto.payDate,
     description: `Payroll for ${employee.firstName} ${employee.lastName}`,
     lines: [
       {
         accountId: dto.salaryExpenseAccountId,
-        debit: grossPay,
+        debit: grossPay + totalAdditions,
         credit: 0,
       },
       {
         accountId: dto.taxesPayableAccountId,
         debit: 0,
-        credit: taxes,
+        credit: totalDeductions, // includes computed tax
       },
       {
         accountId: dto.accruedPayrollLiabilityAccountId,
@@ -134,31 +87,43 @@ async create(dto: CreatePayrollDto): Promise<Payroll> {
       },
     ],
   };
+  await this.journalService.create(journalDto);
 
-  // 5️⃣ Start Transaction (to ensure consistency)
-  return await this.repo.manager.transaction(async (manager) => {
-    // Create Journal
-    await this.journalService.create(journalDto);
-
-    // Create Payroll record
-    const payroll = manager.create(this.repo.target, dto);
-    payroll.employee = employee;
-    const savedPayroll = await manager.save(this.repo.target, payroll);
-
-    // 6️⃣ Optional — Handle Adjustments
-    if (dto.adjustments && dto.adjustments.length > 0) {
-      for (const adj of dto.adjustments) {
-        // ensure link between adjustment and payroll
-        adj.payrollId = savedPayroll.id;
-        adj.employeeId = employee.id;
-
-        await this.payrollAdjestimentService.create(adj);
-      }
-    }
-
-    return savedPayroll;
+  // === Payroll record ===
+  const payroll = this.repo.create({
+    ...dto,
+    grossPay,
+    netPay,
+    employee,
   });
+  const createdPayroll = await this.repo.save(payroll);
+
+  // === Persist Adjustments ===
+  if (dto.adjustments?.length) {
+    const adjustmentsWithPayroll = dto.adjustments.map((adj) => ({
+      ...adj,
+      payrollId: createdPayroll.id,
+      employeeId: dto.employeeId,
+      amount:
+        adj.type === AdjustmentType.TAX
+          ? (grossPay * Number(adj.amount)) / 100 // percent → value
+          : Number(adj.amount),
+    }));
+
+    await this.payrollAdjestimentService.bulkCreate(adjustmentsWithPayroll);
+  }
+
+  const finalPayroll = await this.repo.findOne({
+    where: { id: createdPayroll.id },
+    relations: ['employee', 'adjustments'],
+  });
+
+  if (!finalPayroll)
+    throw new NotFoundException(`Payroll #${createdPayroll.id} not found after creation`);
+
+  return finalPayroll;
 }
+
 
 
 async payPayroll(payrollId: string): Promise<Payroll> {
@@ -213,7 +178,15 @@ async payPayroll(payrollId: string): Promise<Payroll> {
 
 
   findAll(): Promise<Payroll[]> {
-    return this.repo.find({ relations: ['employee'] });
+    return this.repo.find({ relations: ['employee' , "adjustments"] });
+  }
+    findMany(ids:string[]): Promise<Payroll[]> {
+    return this.repo.find(
+      {
+       where: { id: In(ids) },
+              relations: ['employee', 'adjustments'],
+       }
+    );
   }
 
   async findOne(id: string): Promise<Payroll> {
@@ -232,4 +205,12 @@ async payPayroll(payrollId: string): Promise<Payroll> {
     const payroll = await this.findOne(id);
     await this.repo.remove(payroll);
   }
+
+async bulkRemove(ids: string[]): Promise<void> {
+  const payrolls = await this.repo.findBy({ id: In(ids) }); // Find all matching records
+  if (!payrolls.length) throw new NotFoundException('No payrolls found for given IDs');
+
+  await this.repo.remove(payrolls);
+}
+
 }
