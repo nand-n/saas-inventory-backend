@@ -4,9 +4,9 @@ import {
   IsOptional,
   IsDateString,
   ValidateNested,
-  IsArray,
   IsNumber,
   IsUUID,
+  IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ShipmentType, ShipmentStatus } from '../entities/shipment.entity';
@@ -46,6 +46,10 @@ export class CreateShipmentDto {
   @IsOptional()
   supplierId?: string;
 
+  @IsUUID()
+  @IsOptional()
+  customerId?: string;
+
   @IsString()
   carrier: string;
 
@@ -69,17 +73,65 @@ export class CreateShipmentDto {
   @IsDateString()
   actualDeliveryDate?: Date;
 
-  @IsOptional() @IsNumber() weight?: number;
-  @IsOptional() @IsNumber() shippingCost?: number;
-  @IsOptional() @IsString() containerNumber?: string;
-  @IsOptional() @IsString() vesselName?: string;
-  @IsOptional() @IsString() portOfLoading?: string;
-  @IsOptional() @IsString() portOfDischarge?: string;
+  @IsOptional()
+  @IsNumber()
+  weight?: number;
+
+  @IsOptional()
+  @IsNumber()
+  shippingCost?: number;
+
+  @IsOptional()
+  @IsString()
+  containerNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  vesselName?: string;
+
+  @IsOptional()
+  @IsString()
+  portOfLoading?: string;
+
+  @IsOptional()
+  @IsString()
+  portOfDischarge?: string;
 
   @IsOptional()
   @ValidateNested()
   @Type(() => CustomsInfoDto)
   customsInfo?: CustomsInfoDto;
 
-  @IsOptional() @IsString() notes?: string;
+  /** 🚚 Domestic delivery–specific fields */
+  @IsOptional()
+  @IsString()
+  deliveryAgentName?: string;
+
+  @IsOptional()
+  @IsString()
+  deliveryAgentPhone?: string;
+
+  @IsOptional()
+  @IsString()
+  vehiclePlateNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  deliveryProofUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  recipientName?: string;
+
+  @IsOptional()
+  @IsString()
+  recipientSignatureUrl?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isPartialDelivery?: boolean;
+
+  @IsOptional()
+  @IsString()
+  notes?: string;
 }

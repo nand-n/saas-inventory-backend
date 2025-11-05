@@ -1,12 +1,13 @@
-import { IsDateString, IsEnum, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsArray, IsDateString, IsEnum, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreateRFQItemDto } from './create-rfq-item.dto';
 import { RFQStatus } from '../entities/rfq.entity';
+import { CreateRFQSupplierDto } from './create-rfq-supplpier.dto';
 
 export class CreateRFQDto {
   @IsOptional()
   @IsString()
-  supplierId?: string;
+  rfqNumber?: string;
 
   @IsOptional()
   @IsEnum(RFQStatus)
@@ -28,7 +29,13 @@ export class CreateRFQDto {
   @IsString()
   termsAndConditions?: string;
 
+  @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateRFQItemDto)
   items: CreateRFQItemDto[];
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateRFQSupplierDto)
+  suppliers: CreateRFQSupplierDto[];
 }

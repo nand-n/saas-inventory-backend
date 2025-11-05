@@ -137,7 +137,7 @@ export class Shipment  extends BaseModel {
   @OneToMany(() => PurchaseOrder, (po) => po.supplier)
   purchaseOrders: PurchaseOrder[];
 
-    @OneToMany(() => SalesOrder, (po) => po.customer)
+  @OneToMany(() => SalesOrder, (po) => po.customer)
   salesOrders: SalesOrder[];
 
   @ManyToOne(() => Customer, customer => customer.shipments, { nullable: true })

@@ -2,19 +2,27 @@ import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateRFQItemDto {
   @IsString()
-  productName: string;
+  productId: string;
 
   @IsString()
-  productId: string;
+  productName: string;
 
   @IsNumber()
   quantity: number;
 
   @IsOptional()
+  @IsString()
+  uom?: string;
+
+  @IsOptional()
   @IsNumber()
-  expectedUnitCost?: number;
+  estimatedUnitPrice?: number;
 
   @IsOptional()
   @IsNumber()
   lineTotal?: number;
+
+  @IsOptional()
+  @IsString()
+  itemNo?: string;
 }

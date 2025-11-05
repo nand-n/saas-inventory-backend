@@ -4,6 +4,7 @@ import { Product } from '../../product/entities/product.entity';
 import { Shipment } from '../../shipment/entities/shipment.entity';
 import { PurchaseOrder } from '../../purchase-order/entities/purchase-order.entity';
 import { RFQ } from '../../rfq/entities/rfq.entity';
+import { RFQSupplier } from '../../rfq/entities/rfq-supplier.entity';
 
 export enum SupplierStatus {
   ACTIVE = 'active',
@@ -71,6 +72,11 @@ export class Supplier extends BaseModel {
   @ManyToOne(() => PurchaseOrder, (po) => po.supplier)
   purchaseOrders: PurchaseOrder;
 
-  @OneToMany(() => RFQ, (rfq) => rfq.supplier)
+  @OneToMany(() => RFQ, (rfq) => rfq.suppliers)
   rfqs: RFQ[];
+
+  @OneToMany(() => RFQSupplier, (rfqSupplier) => rfqSupplier.supplier, {
+  cascade: true,
+})
+rfqSuppliers: RFQSupplier[];
 }

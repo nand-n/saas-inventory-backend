@@ -34,6 +34,8 @@ import { SalesOrderModule } from './modules/sales-order/sales-order.module';
 import { CrmModule } from './modules/crm/crm.module';
 import { RiskModule } from './modules/risks/risk.module';
 import { PlanningModule } from './modules/supply-planing/planning.module';
+import { GoodsReceiptModule } from './modules/grn/goods-receipt.module';
+import { RfiModule } from './modules/rfi/rfi.module';
 
 @Global()
 @Module({
@@ -79,6 +81,8 @@ import { PlanningModule } from './modules/supply-planing/planning.module';
     CrmModule,
     RiskModule,
     PlanningModule,
+    GoodsReceiptModule,
+    RfiModule,
     ChapaModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({

@@ -6,6 +6,7 @@ import { Supplier } from '../supliers/entities/suplier.entity';
 import { RFQ } from './entities/rfq.entity';
 import { CreateRFQDto } from './dtos/create-rfq.dto';
 import { UpdateRFQDto } from './dtos/update-rfq.dto';
+import { ProductsService } from '../product/products.service';
 
 @Injectable()
 export class RFQService {
@@ -19,8 +20,8 @@ export class RFQService {
   async create(createRfqDto: CreateRFQDto): Promise<RFQ> {
   const rfqNumber = `RFQ-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-
     const rfq = this.rfqRepository.create({...createRfqDto , rfqNumber});
+
 
     if (createRfqDto.supplierId) {
       const supplier = await this.supplierRepository.findOneBy({ id: createRfqDto.supplierId });
