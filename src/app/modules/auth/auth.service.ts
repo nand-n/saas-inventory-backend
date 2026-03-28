@@ -1,17 +1,18 @@
-import { Injectable, UnauthorizedException, ConflictException, HttpException, HttpStatus, Inject } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, HttpException, HttpStatus, Inject, ForbiddenException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import * as crypto from 'crypto';
 import { User } from '../users/entities/user.entity';
 import { LoginDto } from './dto/login.dto';
+import { UserRole } from '../users/enums/user.enum';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   private verifyPassword(
     storedPassword: string,
@@ -35,7 +36,7 @@ export class AuthService {
   async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.usersService.findOneByEmail(email);
     if (!user) return null;
-    
+
     const isPasswordValid = this.verifyPassword(user.password, password);
     return isPasswordValid ? user : null;
   }
@@ -75,7 +76,7 @@ export class AuthService {
       user,
       tenantId: user.tenantId,
       tenant: user.tenant
-      
+
     };
   }
 
@@ -100,26 +101,26 @@ export class AuthService {
     password: string,
   ): Promise<{ access_token: string; user: User }> {
     const user = await this.validateUser(email, password);
-    
+
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const payload = { 
-      email: user.email, 
+    const payload = {
+      email: user.email,
       sub: user.id,
       roles: user.roles,
       tenantId: user.tenantId
     };
-    
+
     return {
       access_token: this.jwtService.sign(payload),
       user,
-      
+
     };
   }
 
-  
+
 
   async register(
     userDto: CreateUserDto,
@@ -146,5 +147,36 @@ export class AuthService {
       access_token: this.jwtService.sign(payload),
       user: createdUser,
     };
+  }
+
+  async setupSuperAdmin(userDto: CreateUserDto): Promise<{ access_token: string; user: User }> {
+    const hasSuperAdmin = await this.usersService.hasSuperAdmin();
+    if (hasSuperAdmin) {
+      throw new ForbiddenException('SuperAdmin already exists');
+    }
+
+    const hashedPassword = this.hashPassword(userDto.password);
+    const createdUser = await this.usersService.create({
+      ...userDto,
+      password: hashedPassword,
+      roles: [UserRole.SUPER_ADMIN],
+    });
+
+    const payload = {
+      email: createdUser.email,
+      sub: createdUser.id,
+      roles: createdUser.roles,
+      tenantId: createdUser.tenantId,
+    };
+
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: createdUser,
+    };
+  }
+
+  async checkSetupNeeded(): Promise<{ needed: boolean }> {
+    const hasSuperAdmin = await this.usersService.hasSuperAdmin();
+    return { needed: !hasSuperAdmin };
   }
 }

@@ -19,21 +19,20 @@ export const configuration = () => ({
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     type: process.env.DB_TYPE,
-    ssl:process.env.SSL,
+    ssl: process.env.SSL,
     synchronize: Boolean(process.env.DB_SYNCHRONIZE_ENTITIES),
   },
-  payment:{
-    chapaSecretKey:process.env.CHAPA_SECRET_KEY,
+  payment: {
+    chapaSecretKey: process.env.CHAPA_SECRET_KEY,
     chapaVerifyUrl: process.env.CHAPA_SECRET_KEY,
     chapaPayUrl: process.env.CHAPA_PAY_URL
   },
 
-  jwt:{
+  jwt: {
     jwtSecret: process.env.JWT_SECRET,
     jwtTokenAudeance: process.env.JWT_TOKEN_AUDIENCE,
     jwtTokenIssuer: process.env.JWT_TOKEN_ISSUER,
-    jwtAccessTokenTTL:process.env.JWT_ACCESS_TOKEN_TTL,
-    jwtRefreshTokenTTL:process.env.JWT_REFRESH_TOKEN_TTL,
-  },
-  mameSodoTelegramBotToken : process.env.LORRY_TELEGRAM_TOKEN
+    jwtAccessTokenTTL: process.env.JWT_ACCESS_TOKEN_TTL,
+    jwtRefreshTokenTTL: process.env.JWT_REFRESH_TOKEN_TTL,
+  }
 });

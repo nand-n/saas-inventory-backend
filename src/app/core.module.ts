@@ -36,6 +36,7 @@ import { RiskModule } from './modules/risks/risk.module';
 import { PlanningModule } from './modules/supply-planing/planning.module';
 import { GoodsReceiptModule } from './modules/grn/goods-receipt.module';
 import { RfiModule } from './modules/rfi/rfi.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Global()
 @Module({
@@ -83,6 +84,7 @@ import { RfiModule } from './modules/rfi/rfi.module';
     PlanningModule,
     GoodsReceiptModule,
     RfiModule,
+    DashboardModule,
     ChapaModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -94,4 +96,4 @@ import { RfiModule } from './modules/rfi/rfi.module';
     }),
   ],
 })
-export class CoreModule {}
+export class CoreModule { }

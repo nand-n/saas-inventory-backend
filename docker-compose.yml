@@ -1,8 +1,9 @@
 version: '3'
 services:
   retaildb:
-    image: postgres
+    image: postgres:16-alpine
     container_name: retail
+    restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -10,10 +11,16 @@ services:
     ports:
       - '5433:5432'
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   retailpgadmintweb:
     image: dpage/pgadmin4
     container_name: retailpgadmintweb
+    restart: unless-stopped
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
       PGADMIN_DEFAULT_PASSWORD: admin
@@ -27,10 +34,14 @@ services:
       context: ./
       dockerfile: Dockerfile
       target: development
+    restart: unless-stopped
+    env_file:
+      - .env
     ports:
       - '5000:5000'
     volumes:
       - ./:/app
+      - /app/node_modules
     depends_on:
       - retaildb
 volumes:
@@ -39,54 +50,3 @@ networks:
   default:
     driver: bridge
 
-
-
-# version: '3.8'
-
-# services:
-#   retaildb:
-#     image: postgres:17
-#     container_name: retaildb
-#     restart: always
-#     environment:
-#       POSTGRES_USER: postgres
-#       POSTGRES_PASSWORD: postgres
-#       POSTGRES_DB: retaildb
-#     volumes:
-#       - postgres_data:/var/lib/postgresql/data
-#     healthcheck:
-#       test: ["CMD-SHELL", "pg_isready -U postgres"]
-#       interval: 10s
-#       timeout: 5s
-#       retries: 5
-
-#   # retailpgadmin:
-#   #   image: dpage/pgadmin4
-#   #   container_name: retailpgadmin
-#   #   restart: always
-#   #   environment:
-#   #     PGADMIN_DEFAULT_EMAIL: admin@admin.com
-#   #     PGADMIN_DEFAULT_PASSWORD: admin
-#   #   depends_on:
-#   #     - retaildb
-
-#   app:
-#     build:
-#       context: .
-#       dockerfile: Dockerfile
-#       target: production
-#     restart: always
-#     environment:
-#       DATABASE_URL: postgres://postgres:postgres@retaildb:5432/retaildb
-#       NODE_ENV: production
-#       PORT: 5000
-#     depends_on:
-#       - retaildb
-#     healthcheck:
-#       test: ["CMD-SHELL", "curl -f http://localhost:5000/health || exit 1"]
-#       interval: 10s
-#       timeout: 5s
-#       retries: 5
-
-# volumes:
-#   postgres_data:

@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, ManyToMany, JoinTable, JoinColumn, OneToMany } from 'typeorm';
+import { Entity, Column, ManyToOne, ManyToMany, JoinTable, JoinColumn, OneToMany } from 'typeorm';
 import { Tenant } from '../../tenants/entities/tenants.entity';
 import { BaseModel } from '@root/src/database/base.model';
 import { Branch } from '../../branchs/entities/branch.entity';
@@ -27,8 +27,8 @@ export class User extends BaseModel {
   phone: string;
 
 
-@Column('simple-array', { default: UserRole.VIEWER })
-roles: UserRole[];
+  @Column('simple-array', { default: UserRole.VIEWER })
+  roles: UserRole[];
 
 
   @ManyToOne(() => Tenant)
@@ -50,14 +50,14 @@ roles: UserRole[];
   @ManyToOne(() => SubscriptionPlan, (subscription) => subscription.user, { nullable: true, eager: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'subscription_plan_id' })
   subscriptionPlan?: SubscriptionPlan;
-  
+
   @IsOptional()
   @OneToMany(() => Payment, (payment) => payment.user)
   payments: Payment[];
 
-    @ManyToOne(() => Department, department => department.employees)
-    department!: Department;
-  
-    @Column({ nullable: true })
-    departmentId: string;
+  @ManyToOne(() => Department, department => department.employees)
+  department!: Department;
+
+  @Column({ nullable: true })
+  departmentId: string;
 }

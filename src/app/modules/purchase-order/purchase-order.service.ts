@@ -16,47 +16,47 @@ export class PurchaseOrderService {
 
     @InjectRepository(PurchaseOrderItem)
     private poItemRepository: Repository<PurchaseOrderItem>,
-    
+
     @InjectRepository(Supplier)
     private supplierRepository: Repository<Supplier>,
-  ) {}
+  ) { }
 
-async create(dto: CreatePurchaseOrderDto): Promise<PurchaseOrder> {
-  const supplier = await this.supplierRepository.findOne({
-    where: { id: dto.supplierId },
-  });
-  if (!supplier) throw new NotFoundException('Supplier not found');
-
-  const poNumber = `PO-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-
-  // Map DTO items -> PurchaseOrderItem entities
-  const items = dto.items.map((itemDto) => {
-    const lineTotal = Number(itemDto.quantity) * Number(itemDto.unit_cost);
-    const poi = this.poItemRepository.create({
-      productName: itemDto.productName,
-      unit_cost: itemDto.unit_cost,
-      quantity: itemDto.quantity,
-      lineTotal,
-      productId:itemDto.productId
+  async create(dto: CreatePurchaseOrderDto): Promise<PurchaseOrder> {
+    const supplier = await this.supplierRepository.findOne({
+      where: { id: dto.supplierId },
     });
-    return poi;
-  });
+    if (!supplier) throw new NotFoundException('Supplier not found');
 
-  // Calculate total amount based on items
-  const totalAmount = items.reduce((sum, item) => sum + Number(item.lineTotal), 0);
+    const poNumber = `PO-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-  const po = this.poRepository.create({
-    poNumber,
-    supplier,
-    status: dto.status,
-    orderDate: new Date(dto.orderDate),
-    expectedDeliveryDate: new Date(dto.expectedDeliveryDate),
-    totalAmount,
-    items,
-  });
+    // Map DTO items -> PurchaseOrderItem entities
+    const items = dto.items.map((itemDto) => {
+      const lineTotal = Number(itemDto.quantity) * Number(itemDto.unit_cost);
+      const poi = this.poItemRepository.create({
+        productName: itemDto.productName,
+        unit_cost: itemDto.unit_cost,
+        quantity: itemDto.quantity,
+        lineTotal,
+        productId: itemDto.productId
+      });
+      return poi;
+    });
 
-  return await this.poRepository.save(po);
-}
+    // Calculate total amount based on items
+    const totalAmount = items.reduce((sum, item) => sum + Number(item.lineTotal), 0);
+
+    const po = this.poRepository.create({
+      poNumber,
+      supplier,
+      status: dto.status,
+      orderDate: new Date(dto.orderDate),
+      expectedDeliveryDate: new Date(dto.expectedDeliveryDate),
+      totalAmount,
+      items,
+    });
+
+    return await this.poRepository.save(po);
+  }
 
   async findAll(): Promise<PurchaseOrder[]> {
     return this.poRepository.find({ relations: ['supplier', 'items'] });
@@ -72,7 +72,7 @@ async create(dto: CreatePurchaseOrderDto): Promise<PurchaseOrder> {
     const po = await this.findOne(id);
 
     if (dto.supplierId) {
-      const supplier = await this.supplierRepository.findOne({ where: { id: dto.supplierId }});
+      const supplier = await this.supplierRepository.findOne({ where: { id: dto.supplierId } });
       if (!supplier) throw new NotFoundException('Supplier not found');
       po.supplier = supplier;
     }
@@ -89,5 +89,22 @@ async create(dto: CreatePurchaseOrderDto): Promise<PurchaseOrder> {
   async remove(id: string): Promise<void> {
     const po = await this.findOne(id);
     await this.poRepository.remove(po);
+  }
+
+  async count() {
+    return this.poRepository.count();
+  }
+
+  async getStats() {
+    const totalOrders = await this.poRepository.count();
+    const totalAmount = await this.poRepository
+      .createQueryBuilder('po')
+      .select('SUM(po.totalAmount)', 'sum')
+      .getRawOne();
+
+    return {
+      totalOrders,
+      totalAmount: Number(totalAmount?.sum || 0),
+    };
   }
 }

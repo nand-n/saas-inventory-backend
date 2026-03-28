@@ -20,56 +20,56 @@ export class EmployeeService {
 
     @InjectRepository(User)
     private userRepo: Repository<User>,
-  ) {}
+  ) { }
 
-async create(dto: CreateEmployeeDto): Promise<Employee> {
-  // 🧩 Generate next employee number
-  const lastEmployee = await this.employeeRepo
-    .createQueryBuilder('employee')
-    .orderBy('employee.employeeNumber', 'DESC')
-    .getOne();
+  async create(dto: CreateEmployeeDto): Promise<Employee> {
+    // 🧩 Generate next employee number
+    const lastEmployee = await this.employeeRepo
+      .createQueryBuilder('employee')
+      .orderBy('employee.employeeNumber', 'DESC')
+      .getOne();
 
-  let nextNumber = 1;
-  if (lastEmployee && lastEmployee.employeeNumber) {
-    const lastNumberPart = parseInt(lastEmployee.employeeNumber.replace('EMP-', ''));
-    if (!isNaN(lastNumberPart)) {
-      nextNumber = lastNumberPart + 1;
+    let nextNumber = 1;
+    if (lastEmployee && lastEmployee.employeeNumber) {
+      const lastNumberPart = parseInt(lastEmployee.employeeNumber.replace('EMP-', ''));
+      if (!isNaN(lastNumberPart)) {
+        nextNumber = lastNumberPart + 1;
+      }
     }
+    const employeeNumber = `EMP-${1 + nextNumber}`;
+
+    const employee = this.employeeRepo.create({
+      ...dto,
+      employeeNumber,
+    });
+
+    const department = await this.departmentRepo.findOneOrFail({
+      where: { id: dto.departmentId },
+      relations: ['branch'],
+    }); employee.department = department;
+
+    if (dto.supervisorId) {
+      const supervisor = await this.employeeRepo.findOneByOrFail({ id: dto.supervisorId });
+      employee.supervisor = supervisor;
+    }
+
+    const user = this.userRepo.create({
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      email: dto.email,
+      phone: dto.phone,
+      password: '123456',
+      roles: [UserRole.EMPLOYEE],
+      departmentId: dto.departmentId,
+      tenantId: department.branch.tenantId,
+      branchId: department.branchId,
+    });
+
+    const createdUser = await this.userRepo.save(user);
+    employee.user = createdUser;
+
+    return this.employeeRepo.save(employee);
   }
-  const employeeNumber = `EMP-${1 + nextNumber}`; 
-
-  const employee = this.employeeRepo.create({
-    ...dto,
-    employeeNumber, 
-  });
-
- const department = await this.departmentRepo.findOneOrFail({
-  where: { id: dto.departmentId },
-  relations: ['branch'],
-});  employee.department = department;
-
-  if (dto.supervisorId) {
-    const supervisor = await this.employeeRepo.findOneByOrFail({ id: dto.supervisorId });
-    employee.supervisor = supervisor;
-  }
-
-  const user = this.userRepo.create({
-    firstName: dto.firstName,
-    lastName: dto.lastName,
-    email: dto.email,
-    phone: dto.phone,
-    password: '123456',
-    roles: [UserRole.EMPLOYEE],
-    departmentId: dto.departmentId,
-    tenantId:department.branch.tenantId,
-    branchId: department.branchId,
-  });
-
-  const createdUser = await this.userRepo.save(user);
-  employee.user = createdUser;
-
-  return this.employeeRepo.save(employee);
-}
 
 
   findAll(): Promise<Employee[]> {
@@ -110,5 +110,9 @@ async create(dto: CreateEmployeeDto): Promise<Employee> {
   async remove(id: string): Promise<void> {
     const employee = await this.findOne(id);
     await this.employeeRepo.remove(employee);
+  }
+
+  async count() {
+    return this.employeeRepo.count();
   }
 }

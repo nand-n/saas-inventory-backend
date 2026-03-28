@@ -44,6 +44,9 @@ export class PurchaseOrder extends BaseModel {
   @OneToMany(() => PurchaseOrderItem, (poi) => poi.purchaseOrder, { cascade: true })
   items: PurchaseOrderItem[];
 
+  @ManyToOne(() => RFQ, (rfq) => rfq.purchaseOrders, { nullable: true })
+  rfq: RFQ;
+
   @OneToMany(() => RFQ, (rfq) => rfq.awardedPurchaseOrder)
   rfqs: RFQ[];
 }

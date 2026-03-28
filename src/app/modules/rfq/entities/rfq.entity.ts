@@ -1,4 +1,4 @@
-import { Entity, Column, OneToMany } from 'typeorm';
+import { Entity, Column, OneToMany, ManyToOne } from 'typeorm';
 import { BaseModel } from '@root/src/database/base.model';
 import { RFQItem } from './rfq-item.entity';
 import { RFQSupplier } from './rfq-supplier.entity';
@@ -49,6 +49,9 @@ export class RFQ extends BaseModel {
   suppliers: RFQSupplier[];
 
   // ✅ Purchase order after awarding
-  @OneToMany(() => PurchaseOrder, (po) => po.rfqs, { nullable: true })
+  @ManyToOne(() => PurchaseOrder, (po) => po.rfqs, { nullable: true })
+  awardedPurchaseOrder: PurchaseOrder;
+
+  @OneToMany(() => PurchaseOrder, (po) => po.rfq, { nullable: true })
   purchaseOrders: PurchaseOrder[];
 }

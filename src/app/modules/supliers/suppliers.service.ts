@@ -6,19 +6,23 @@ import { Supplier } from './entities/suplier.entity';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
 import { ProductsService } from '../product/products.service';
 import { randomInt } from 'crypto';
+import { PaginationService } from 'src/core/pagination/pagination.service';
+import { Pagination } from 'nestjs-typeorm-paginate';
+import { PaginationDto } from 'src/core/commonDto/pagination-dto';
 
 @Injectable()
 export class SuppliersService {
   constructor(
     @InjectRepository(Supplier)
     private readonly repo: Repository<Supplier>,
-     private readonly productService: ProductsService,
-  ) {}
+    private readonly productService: ProductsService,
+    private readonly paginationService: PaginationService,
+  ) { }
 
-async create(dto: CreateSupplierDto): Promise<Supplier> {
+  async create(dto: CreateSupplierDto): Promise<Supplier> {
     // 1️⃣ Create and save supplier first
 
-    const supplier = this.repo.create({...dto,code: await this.generateUniqueSupplierCode()});
+    const supplier = this.repo.create({ ...dto, code: await this.generateUniqueSupplierCode() });
     const savedSupplier = await this.repo.save(supplier);
 
     // 2️⃣ Link existing products by IDs using ProductService
@@ -29,19 +33,24 @@ async create(dto: CreateSupplierDto): Promise<Supplier> {
     }
 
     // 3️⃣ Create new products using ProductService
-   const newProducts = dto.newProducts ?? [];
-  if (newProducts.length) {
+    const newProducts = dto.newProducts ?? [];
+    if (newProducts.length) {
       await this.productService.bulkCreateWithSupplier(
-      newProducts,
-      savedSupplier.id
-    );
-  }
+        newProducts,
+        savedSupplier.id
+      );
+    }
 
     return savedSupplier;
   }
 
-  findAll(): Promise<Supplier[]> {
-    return this.repo.find({ relations: ['products', 'shipments'] });
+  findAll(paginationDto: PaginationDto): Promise<Pagination<Supplier>> {
+    return this.paginationService.paginateWithSearch(
+      this.repo,
+      'supplier',
+      paginationDto,
+      ['name', 'code', 'email']
+    );
   }
 
   async findOne(id: string): Promise<Supplier> {
@@ -61,14 +70,14 @@ async create(dto: CreateSupplierDto): Promise<Supplier> {
     await this.repo.remove(supplier);
   }
   private async generateUniqueSupplierCode(): Promise<string> {
-  let code: string;
-  let exists: Supplier | null;
+    let code: string;
+    let exists: Supplier | null;
 
-  do {
-    code = `SUP-${randomInt(1000, 9999)}`; // example: SUP-4387
-    exists = await this.repo.findOne({ where: { code } });
-  } while (exists);
+    do {
+      code = `SUP-${randomInt(1000, 9999)}`; // example: SUP-4387
+      exists = await this.repo.findOne({ where: { code } });
+    } while (exists);
 
-  return code;
-}
+    return code;
+  }
 }

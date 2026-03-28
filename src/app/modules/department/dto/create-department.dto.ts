@@ -1,6 +1,6 @@
 // src/departments/dto/create-department.dto.ts
 
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import {
   IsString,
   IsOptional,
@@ -26,14 +26,16 @@ export class CreateDepartmentDto {
 
   @IsOptional()
   @Type(() => Number)
-  @IsNumber({ maxDecimalPlaces: 2 }) 
+  @IsNumber({ maxDecimalPlaces: 2 })
   budget?: number;
 
   @IsOptional()
+  @Transform(({ value }) => value === "" ? undefined : value)
   @IsUUID()
   parentDepartmentId?: string;
 
   @IsOptional()
+  @Transform(({ value }) => value === "" ? undefined : value)
   @IsUUID()
   managerId?: string;
 

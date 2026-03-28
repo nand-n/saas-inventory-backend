@@ -3,13 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UserRole } from './enums/user.enum';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-  ) {}
+  ) { }
 
   async create(userData: CreateUserDto): Promise<User> {
     const user = this.usersRepository.create(
@@ -19,7 +20,7 @@ export class UsersService {
   }
 
   async findOneByEmail(email: string): Promise<User> {
-    const user = await this.usersRepository.findOne({ where: { email } , relations:["tenant"] });
+    const user = await this.usersRepository.findOne({ where: { email }, relations: ["tenant"] });
     if (!user) {
       throw new Error('User not found');
     }
@@ -34,12 +35,12 @@ export class UsersService {
     return user;
   }
 
-  async findOneWithPermission(userId:string): Promise<User>{
-  const user = await this.usersRepository.findOne({
+  async findOneWithPermission(userId: string): Promise<User> {
+    const user = await this.usersRepository.findOne({
       where: { id: userId },
       relations: ['permissionGroups'],
     });
-    if(!user){
+    if (!user) {
       throw new Error('User not found');
     }
     return user;
@@ -51,14 +52,20 @@ export class UsersService {
     return updatedUser;
   }
   async findByTenant(tenantId: string): Promise<User[]> {
-  const users = await this.usersRepository.find({
-    where: { tenantId },
-    relations: ['tenant', 'branch', 'department', 'permissionGroups'],
-  });
-  if (!users || users.length === 0) {
-    throw new Error('No users found for this tenant');
+    const users = await this.usersRepository.find({
+      where: { tenantId },
+      relations: ['tenant', 'branch', 'department', 'permissionGroups'],
+    });
+    if (!users || users.length === 0) {
+      throw new Error('No users found for this tenant');
+    }
+    return users;
   }
-  return users;
-}
 
+  async hasSuperAdmin(): Promise<boolean> {
+    const count = await this.usersRepository.count({
+      where: { roles: UserRole.SUPER_ADMIN },
+    });
+    return count > 0;
+  }
 }

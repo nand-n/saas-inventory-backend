@@ -54,9 +54,42 @@ export class PaginationService {
     // Apply filter if provided
     if (filter) {
       Object.keys(filter).forEach((key) => {
-        qb.andWhere(`${qb.alias}.${key} = :${key}`, { [key]: filter[key] });
+        if (filter[key] !== undefined && filter[key] !== null) {
+          qb.andWhere(`${qb.alias}.${key} = :${key}`, { [key]: filter[key] });
+        }
       });
     }
+
+    return paginate<Entity>(qb, opts);
+  }
+
+  async paginateWithSearch<Entity extends ObjectLiteral>(
+    repository: Repository<Entity>,
+    alias: string,
+    paginationDto: any, // Use any or a specific DTO type
+    searchFields: string[] = [],
+  ): Promise<Pagination<Entity>> {
+    const { page, limit, orderBy, orderDirection, search, tenantId } = paginationDto;
+
+    const opts: IPaginationOptions = {
+      page: page || this.defaultPage,
+      limit: limit || this.defaultLimit,
+    };
+
+    const qb = repository.createQueryBuilder(alias);
+
+    if (tenantId) {
+      qb.andWhere(`${alias}.tenantId = :tenantId`, { tenantId });
+    }
+
+    if (search && searchFields.length > 0) {
+      const searchConditions = searchFields
+        .map((field) => `${alias}.${field} ILIKE :search`)
+        .join(' OR ');
+      qb.andWhere(`(${searchConditions})`, { search: `%${search}%` });
+    }
+
+    qb.orderBy(`${alias}.${orderBy || 'createdAt'}`, orderDirection || 'DESC');
 
     return paginate<Entity>(qb, opts);
   }

@@ -7,8 +7,9 @@ import { PurchaseOrderController } from './purchase-order.controller';
 import { PurchaseOrderItem } from './entities/purchase-order-item.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([PurchaseOrder,PurchaseOrderItem ,Supplier])],
+  imports: [TypeOrmModule.forFeature([PurchaseOrder, PurchaseOrderItem, Supplier])],
   controllers: [PurchaseOrderController],
   providers: [PurchaseOrderService],
+  exports: [PurchaseOrderService],
 })
-export class PurchaseOrderModule {}
+export class PurchaseOrderModule { }

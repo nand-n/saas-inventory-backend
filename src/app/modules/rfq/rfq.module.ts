@@ -8,11 +8,13 @@ import { RFQItem } from './entities/rfq-item.entity';
 import { ProductsModule } from '../product/products.module';
 import { RFQSupplier } from './entities/rfq-supplier.entity';
 import { RFQSupplierItem } from './entities/rfq-supplier-item.entity';
+import { PurchaseOrder } from '../purchase-order/entities/purchase-order.entity';
+import { PurchaseOrderItem } from '../purchase-order/entities/purchase-order-item.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([RFQ, RFQItem, RFQSupplier , RFQSupplierItem,   Supplier]) , ProductsModule],
+  imports: [TypeOrmModule.forFeature([RFQ, RFQItem, RFQSupplier, RFQSupplierItem, Supplier, PurchaseOrder, PurchaseOrderItem]), ProductsModule],
   controllers: [RFQController],
   providers: [RFQService],
-  exports:[RFQService]
+  exports: [RFQService]
 })
-export class RFQModule {}
+export class RFQModule { }

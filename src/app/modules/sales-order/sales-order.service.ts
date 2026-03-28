@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { SalesOrder } from './entities/sales-order.entity';
+import { SalesOrder, SalesOrderStatus } from './entities/sales-order.entity';
 import { SalesOrderItem } from './entities/sales-order-item.entity';
 import { CreateSalesOrderDto } from './dtos/create-sales-order.dto';
 import { UpdateSalesOrderDto } from './dtos/update-sales-order.dto';
@@ -62,5 +62,26 @@ export class SalesOrderService {
     const so = await this.salesOrderRepo.findOneBy({ id });
     if (!so) throw new NotFoundException('Sales order not found');
     return this.salesOrderRepo.remove(so);
+  }
+
+  async count() {
+    return this.salesOrderRepo.count();
+  }
+
+  async getStats() {
+    const totalOrders = await this.salesOrderRepo.count();
+    const confirmed = await this.salesOrderRepo.count({ where: { status: SalesOrderStatus.CONFIRMED } });
+    const completed = await this.salesOrderRepo.count({ where: { status: SalesOrderStatus.DELIVERED } });
+    const totalAmount = await this.salesOrderRepo
+      .createQueryBuilder('so')
+      .select('SUM(so.totalAmount)', 'sum')
+      .getRawOne();
+
+    return {
+      totalOrders,
+      confirmed,
+      completed,
+      totalAmount: Number(totalAmount?.sum || 0),
+    };
   }
 }

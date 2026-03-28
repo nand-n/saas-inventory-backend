@@ -25,7 +25,7 @@ configuration values obtained from a ConfigService. */
     ThrottlerModule.forRoot({
       ttl: 60,
       limit: 10,
-      
+
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -38,19 +38,16 @@ configuration values obtained from a ConfigService. */
         database: configService.get<string>('db.name'),
         entities: [__dirname + '/../**/*.entity{.ts,.js}'],
         synchronize: configService.get<boolean>('db.synchronize'),
-        // ssl: {
-        //   rejectUnauthorized: false,
-        // },
-        ssl:true
+        // ssl: configService.get<boolean>('db.ssl') ? { rejectUnauthorized: false } : false,
       }),
       inject: [ConfigService],
     }),
-    
-    
+
+
   ],
 
-  providers:[
+  providers: [
     JwtService,
   ]
 })
-export class AppModule {}
+export class AppModule { }

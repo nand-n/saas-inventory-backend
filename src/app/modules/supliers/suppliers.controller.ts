@@ -1,12 +1,14 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Delete, Query } from '@nestjs/common';
 import { SuppliersService } from './suppliers.service';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
 import { Supplier } from './entities/suplier.entity';
+import { PaginationDto } from 'src/core/commonDto/pagination-dto';
+import { Pagination } from 'nestjs-typeorm-paginate';
 
 @Controller('suppliers')
 export class SuppliersController {
-  constructor(private readonly service: SuppliersService) {}
+  constructor(private readonly service: SuppliersService) { }
 
   @Post()
   create(@Body() dto: CreateSupplierDto): Promise<Supplier> {
@@ -14,8 +16,8 @@ export class SuppliersController {
   }
 
   @Get()
-  findAll(): Promise<Supplier[]> {
-    return this.service.findAll();
+  findAll(@Query() paginationDto: PaginationDto): Promise<Pagination<Supplier>> {
+    return this.service.findAll(paginationDto);
   }
 
   @Get(':id')

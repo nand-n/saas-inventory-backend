@@ -5,11 +5,31 @@ import { UpdateRFQDto } from './dtos/update-rfq.dto';
 
 @Controller('rfqs')
 export class RFQController {
-  constructor(private readonly rfqService: RFQService) {}
+  constructor(private readonly rfqService: RFQService) { }
 
   @Post()
   create(@Body() createRfqDto: CreateRFQDto) {
     return this.rfqService.create(createRfqDto);
+  }
+
+  @Post(':id/send')
+  sendRFQ(@Param('id') id: string) {
+    return this.rfqService.sendRFQ(id);
+  }
+
+  @Post(':id/bid/:supplierId')
+  submitBid(@Param('id') rfqId: string, @Param('supplierId') supplierId: string, @Body() itemsBid: any[]) {
+    return this.rfqService.submitBid(rfqId, supplierId, itemsBid);
+  }
+
+  @Post(':id/award/:supplierId')
+  awardItems(@Param('id') rfqId: string, @Param('supplierId') supplierId: string, @Body('itemIds') itemIds: string[]) {
+    return this.rfqService.awardItems(rfqId, supplierId, itemIds);
+  }
+
+  @Post(':id/generate-po')
+  generatePO(@Param('id') id: string) {
+    return this.rfqService.generatePO(id);
   }
 
   @Get()

@@ -1,38 +1,3 @@
-# # Development stage
-# FROM node:20 AS development
-
-# WORKDIR /app
-
-# COPY package*.json ./
-
-# RUN npm i --force
- 
-# COPY . .
-
-# EXPOSE 5000
-
-# CMD ["npm", "run", "start:dev"]
-
-
-# # Production stage
-# FROM node:20 AS production
-
-# WORKDIR /app
-
-# COPY package*.json ./
-
-# # Install all dependencies including dev for build
-# RUN npm i --force
-
-# COPY . .
-
-# # Build the app
-# RUN npm run build
-
-# EXPOSE 5000
-
-# CMD ["npm" , "start:prod"]
-
 # Development stage
 FROM node:20 AS development
 
@@ -40,7 +5,7 @@ WORKDIR /app
 
 COPY package*.json yarn.lock ./
 
-RUN npm i --f
+RUN npm i --f && npm install -g @nestjs/cli
 
 COPY . .
 

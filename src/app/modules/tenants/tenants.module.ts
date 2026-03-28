@@ -7,11 +7,12 @@ import { IndustryTypeModule } from '../industryType/industry-type.module';
 import { UsersModule } from '../users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { BranchsModule } from '../branchs/branchs.module';
+import { ConfigurationsModule } from '../configurations/configurations.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Tenant]) , IndustryTypeModule , UsersModule , JwtModule , BranchsModule],
+  imports: [TypeOrmModule.forFeature([Tenant]), IndustryTypeModule, UsersModule, JwtModule, BranchsModule, ConfigurationsModule],
   controllers: [TenantsController],
   providers: [TenantsService],
   exports: [TenantsService],
 })
-export class TenantsModule {}
+export class TenantsModule { }

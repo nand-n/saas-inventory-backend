@@ -28,4 +28,14 @@ export class PaginationDto {
   @IsNumber({}, { message: 'limit must be a number' })
   @Min(1, { message: 'limit must be at least 1' })
   limit?: number;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  tenantId?: string;
 }

@@ -10,7 +10,7 @@ export class ShipmentsService {
   constructor(
     @InjectRepository(Shipment)
     private readonly repo: Repository<Shipment>,
-  ) {}
+  ) { }
 
   async create(dto: CreateShipmentDto): Promise<Shipment> {
     const entity = this.repo.create(dto);
@@ -36,5 +36,9 @@ export class ShipmentsService {
   async remove(id: string): Promise<void> {
     const shipment = await this.findOne(id);
     await this.repo.remove(shipment);
+  }
+
+  async count() {
+    return this.repo.count();
   }
 }

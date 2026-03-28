@@ -22,7 +22,7 @@ export class InventoryItemService {
     private readonly itemRepository: Repository<InventoryItem>,
     private journalService: JournalService,
     private readonly dataSource: DataSource,
-  ) {}
+  ) { }
 
   async create(createDto: CreateInventoryItemDto): Promise<InventoryItem> {
     const item = this.itemRepository.create(createDto);
@@ -220,5 +220,9 @@ export class InventoryItemService {
     }
 
     return query.getRawMany();
+  }
+
+  async count() {
+    return this.itemRepository.count();
   }
 }
